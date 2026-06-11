@@ -75,11 +75,9 @@
         localStorage.setItem('linktree-theme', theme);
         
         // 更新 body 背景动画
-        if (theme === 'dark') {
-          document.body.style.animation = 'none';
-          document.body.offsetHeight; // 触发重绘
-          document.body.style.animation = '';
-        }
+        document.body.style.animation = 'none';
+        document.body.offsetHeight; // 触发重绘
+        document.body.style.animation = '';
       }
 
       // 初始主题
