@@ -190,6 +190,11 @@ body::before {
   transition: all 0.3s ease;
 }
 
+.container:hover {
+  box-shadow: 0 12px 48px rgba(79, 172, 254, 0.15), 0 4px 12px rgba(0, 0, 0, 0.05);
+  border-color: rgba(79, 172, 254, 0.3);
+}
+
 /* ---- 头像 ---- */
 .avatar-wrap {
   margin: 0 auto 20px;
