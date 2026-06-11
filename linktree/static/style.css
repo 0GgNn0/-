@@ -742,3 +742,10 @@ body::before {
     display: none; /* 隐藏 icon 列 */
   }
 }
+
+@media (min-width: 600px) and (max-width: 900px) {
+  .container {
+    max-width: 480px;
+    padding: 44px 36px 36px;
+  }
+}
