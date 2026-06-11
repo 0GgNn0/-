@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理登录</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body data-theme="light">
+  <button class="theme-toggle" id="themeToggle" title="切换主题" aria-label="切换暗色/亮色模式">
+    <span class="theme-icon" id="themeIcon">🌙</span>
+  </button>
+
+  <div class="login-container">
+    <h1>管理登录</h1>
+    <p class="subtitle">请输入管理密码以进入后台</p>
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="password">密码</label>
+        <input type="password" id="password" placeholder="请输入管理密码" autofocus required>
+      </div>
+      <button type="submit" class="btn btn-primary">登 录</button>
+    </form>
+    <p class="error-msg" id="errorMsg"></p>
+    <a href="/" class="back-link">← 返回首页</a>
+  </div>
+
+  <script>
+    (function() {
+      // 主题
+      const html = document.documentElement;
+      const toggle = document.getElementById('themeToggle');
+      const icon = document.getElementById('themeIcon');
+      const stored = localStorage.getItem('linktree-theme') || 'light';
+
+      function applyTheme(t) {
+        html.setAttribute('data-theme', t);
+        icon.textContent = t === 'dark' ? '☀️' : '🌙';
+        localStorage.setItem('linktree-theme', t);
+      }
+      applyTheme(stored);
+      toggle.addEventListener('click', function() {
+        const current = html.getAttribute('data-theme');
+        applyTheme(current === 'dark' ? 'light' : 'dark');
+      });
+
+      // 登录
+      var form = document.getElementById('loginForm');
+      var error = document.getElementById('errorMsg');
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        var password = document.getElementById('password').value;
+        error.classList.remove('show');
+
+        fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: password })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.ok) {
+            window.location.href = '/admin';
+          } else {
+            error.textContent = data.message || '登录失败';
+            error.classList.add('show');
+          }
+        })
+        .catch(function() {
+          error.textContent = '网络错误，请重试';
+          error.classList.add('show');
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

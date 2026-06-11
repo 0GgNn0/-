@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理后台 - LinkTree</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body data-theme="light">
+  <button class="theme-toggle" id="themeToggle" title="切换主题" aria-label="切换暗色/亮色模式">
+    <span class="theme-icon" id="themeIcon">🌙</span>
+  </button>
+
+  <div class="admin-container">
+    <div class="admin-header">
+      <h1>管理后台</h1>
+      <div class="actions">
+        <a href="/" class="btn btn-sm" style="text-decoration:none; background:var(--input-bg); color:var(--text-primary); display:inline-flex; align-items:center;">← 首页</a>
+        <button class="btn btn-sm" style="background:var(--input-bg); color:var(--text-primary);" onclick="logout()">退出</button>
+      </div>
+    </div>
+
+    <!-- 个人信息 -->
+    <div class="section">
+      <h2>个人信息</h2>
+      <div class="settings-form">
+        <div class="form-group">
+          <label>显示名称</label>
+          <input type="text" id="settingName" placeholder="你的名字">
+        </div>
+        <div class="form-group">
+          <label>简介 / 签名</label>
+          <textarea id="settingBio" placeholder="一句话介绍自己"></textarea>
+        </div>
+        <div class="form-group">
+          <label>头像 (图片URL 或 Data URL)</label>
+          <input type="text" id="settingAvatar" placeholder="https://example.com/avatar.jpg">
+        </div>
+        <button class="btn btn-primary" onclick="saveSettings()" style="width:auto; padding:0 24px;">保存设置</button>
+      </div>
+    </div>
+
+    <!-- 链接管理 -->
+    <div class="section">
+      <h2>链接管理</h2>
+
+      <!-- 添加链接 -->
+      <div class="inline-form">
+        <input type="text" id="newTitle" placeholder="链接名称" maxlength="30">
+        <input type="url" id="newURL" placeholder="https://..." style="flex:2;">
+        <button class="btn btn-primary btn-sm" onclick="addLink()">+ 添加</button>
+      </div>
+
+      <!-- 链接列表 -->
+      <table class="link-table">
+        <thead>
+          <tr>
+            <th style="width:30%;">名称</th>
+            <th style="width:45%;">URL</th>
+            <th style="width:10%;">排序</th>
+            <th style="width:15%;">操作</th>
+          </tr>
+        </thead>
+        <tbody id="linksBody">
+          <tr><td colspan="4" style="text-align:center; color:var(--text-secondary);">加载中...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 修改密码 -->
+    <div class="section">
+      <h2>修改密码</h2>
+      <div class="settings-form">
+        <div class="form-group">
+          <label>新密码</label>
+          <input type="password" id="newPassword" placeholder="输入新密码">
+        </div>
+        <div class="form-group">
+          <label>确认密码</label>
+          <input type="password" id="confirmPassword" placeholder="再次输入新密码">
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="changePassword()" style="width:auto; padding:0 24px;">修改密码</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    var linksData = [];
+
+    // 主题
+    (function() {
+      var html = document.documentElement;
+      var toggle = document.getElementById('themeToggle');
+      var icon = document.getElementById('themeIcon');
+      var stored = localStorage.getItem('linktree-theme') || 'light';
+      function apply(t) {
+        html.setAttribute('data-theme', t);
+        icon.textContent = t === 'dark' ? '☀️' : '🌙';
+        localStorage.setItem('linktree-theme', t);
+      }
+      apply(stored);
+      toggle.addEventListener('click', function() {
+        var cur = html.getAttribute('data-theme');
+        apply(cur === 'dark' ? 'light' : 'dark');
+      });
+    })();
+
+    // Toast
+    function showToast(msg) {
+      var t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(function() { t.classList.remove('show'); }, 2500);
+    }
+
+    // API 封装
+    function api(url, method, body) {
+      var opts = {
+        method: method,
+        headers: { 'Content-Type': 'application/json' }
+      };
+      if (body) opts.body = JSON.stringify(body);
+      return fetch(url, opts).then(function(r) {
+        if (r.status === 401) {
+          window.location.href = '/admin/login';
+          throw new Error('Unauthorized');
+        }
+        return r.json();
+      });
+    }
+
+    // 退出
+    function logout() {
+      api('/api/auth/logout', 'POST').then(function() {
+        window.location.href = '/admin/login';
+      });
+    }
+
+    // 加载设置
+    function loadSettings() {
+      api('/api/settings', 'GET').then(function(data) {
+        document.getElementById('settingName').value = data.display_name || '';
+        document.getElementById('settingBio').value = data.bio || '';
+        document.getElementById('settingAvatar').value = data.avatar_data_url || '';
+      });
+    }
+
+    function saveSettings() {
+      var body = {
+        display_name: document.getElementById('settingName').value,
+        bio: document.getElementById('settingBio').value,
+        avatar_data_url: document.getElementById('settingAvatar').value
+      };
+      api('/api/settings', 'PUT', body).then(function(data) {
+        if (data.ok) {
+          showToast('设置已保存');
+        } else {
+          showToast('保存失败: ' + (data.message || ''));
+        }
+      });
+    }
+
+    // 链接管理
+    function loadLinks() {
+      api('/api/links', 'GET').then(function(links) {
+        linksData = links;
+        renderLinks();
+      });
+    }
+
+    function renderLinks() {
+      var body = document.getElementById('linksBody');
+      if (linksData.length === 0) {
+        body.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-secondary);">暂无链接，上方添加第一个</td></tr>';
+        return;
+      }
+      var html = '';
+      linksData.forEach(function(l) {
+        html += '<tr>' +
+          '<td>' + esc(l.title) + '</td>' +
+          '<td style="font-size:12px; word-break:break-all;">' + esc(l.url) + '</td>' +
+          '<td>' +
+            '<input type="number" value="' + l.sort_order + '" ' +
+            'style="width:60px; height:30px; border-radius:6px; border:1px solid var(--input-border); background:var(--input-bg); color:var(--text-primary); padding:0 6px; font-size:13px; text-align:center;" ' +
+            'onchange="updateSort(' + l.id + ', this.value)">' +
+          '</td>' +
+          '<td class="actions-cell">' +
+            '<button class="edit-btn" onclick="editLink(' + l.id + ')">编辑</button>' +
+            '<button class="del-btn" onclick="deleteLink(' + l.id + ')">删除</button>' +
+          '</td>' +
+        '</tr>';
+      });
+      body.innerHTML = html;
+    }
+
+    function esc(str) {
+      var div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function addLink() {
+      var titleEl = document.getElementById('newTitle');
+      var urlEl = document.getElementById('newURL');
+      var title = titleEl.value.trim();
+      var url = urlEl.value.trim();
+      if (!title || !url) {
+        showToast('请填写链接名称和URL');
+        return;
+      }
+      api('/api/links', 'POST', { title: title, url: url }).then(function(data) {
+        if (data.ok) {
+          titleEl.value = '';
+          urlEl.value = '';
+          showToast('链接已添加');
+          loadLinks();
+        } else {
+          showToast('添加失败: ' + (data.message || ''));
+        }
+      });
+    }
+
+    function editLink(id) {
+      var link = linksData.find(function(l) { return l.id === id; });
+      if (!link) return;
+      var newTitle = prompt('编辑链接名称:', link.title);
+      if (newTitle === null) return;
+      var newURL = prompt('编辑链接URL:', link.url);
+      if (newURL === null) return;
+
+      api('/api/links/' + id, 'PUT', {
+        title: newTitle.trim() || link.title,
+        url: newURL.trim() || link.url,
+        sort_order: link.sort_order
+      }).then(function(data) {
+        if (data.ok) {
+          showToast('链接已更新');
+          loadLinks();
+        } else {
+          showToast('更新失败: ' + (data.message || ''));
+        }
+      });
+    }
+
+    function deleteLink(id) {
+      if (!confirm('确定删除此链接？')) return;
+      api('/api/links/' + id, 'DELETE').then(function(data) {
+        if (data.ok) {
+          showToast('链接已删除');
+          loadLinks();
+        } else {
+          showToast('删除失败: ' + (data.message || ''));
+        }
+      });
+    }
+
+    function updateSort(id, newSort) {
+      var sortVal = parseFloat(newSort);
+      if (isNaN(sortVal)) return;
+
+      // Update local data
+      var link = linksData.find(function(l) { return l.id === id; });
+      if (link) link.sort_order = sortVal;
+
+      // Send reorder
+      var orders = linksData.map(function(l) {
+        return { id: l.id, sort_order: l.sort_order };
+      });
+      api('/api/links/reorder', 'PUT', { orders: orders }).then(function(data) {
+        if (data.ok) {
+          showToast('排序已更新');
+        }
+      });
+    }
+
+    function changePassword() {
+      var p1 = document.getElementById('newPassword').value;
+      var p2 = document.getElementById('confirmPassword').value;
+      if (!p1) {
+        showToast('请输入新密码');
+        return;
+      }
+      if (p1 !== p2) {
+        showToast('两次密码不一致');
+        return;
+      }
+      if (p1.length < 6) {
+        showToast('密码至少6个字符');
+        return;
+      }
+      if (!confirm('确定修改密码？修改后需要重新登录。')) return;
+
+      api('/api/settings', 'PUT', { new_password: p1 }).then(function(data) {
+        if (data.ok) {
+          showToast('密码已修改，即将跳转登录页...');
+          setTimeout(function() {
+            logout();
+          }, 1500);
+        } else {
+          showToast('修改失败: ' + (data.message || ''));
+        }
+      });
+    }
+
+    // 初始化
+    loadSettings();
+    loadLinks();
+  </script>
+</body>
+</html>

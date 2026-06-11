@@ -1,0 +1,99 @@
+package main
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"path/filepath"
+
+	"linktree/handlers"
+	"linktree/middleware"
+	"linktree/models"
+
+	"github.com/gorilla/sessions"
+)
+
+func main() {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	dataDir := os.Getenv("DATA_DIR")
+	if dataDir == "" {
+		dataDir = "data"
+	}
+	dbPath := filepath.Join(dataDir, "linktree.db")
+
+	// Ensure data dir exists
+	os.MkdirAll(dataDir, 0755)
+
+	// Init DB
+	if err := models.InitDB(dbPath); err != nil {
+		log.Fatalf("Failed to init database: %v", err)
+	}
+
+	// Seed default data
+	models.SeedDefaultLinks()
+
+	// Init admin password (first run only)
+	generatedPassword, err := models.InitAdminPassword(os.Getenv("ADMIN_PASSWORD"))
+	if err != nil {
+		log.Printf("Warning: failed to initialize admin password: %v", err)
+	}
+	if generatedPassword != "" {
+		fmt.Println("========================================")
+		fmt.Printf("  初始管理密码: %s\n", generatedPassword)
+		fmt.Println("  请首次登录后立即修改！")
+		fmt.Println("========================================")
+	}
+
+	// Init templates
+	if err := handlers.InitTemplates(); err != nil {
+		log.Fatalf("Failed to parse templates: %v", err)
+	}
+
+	// Init session store
+	sessionKey := os.Getenv("SESSION_SECRET")
+	if sessionKey == "" {
+		sessionKey = "linktree-default-secret-change-me-in-production"
+	}
+	store := sessions.NewCookieStore([]byte(sessionKey))
+	store.Options = &sessions.Options{
+		Path:     "/",
+		MaxAge:   86400, // 24 hours
+		HttpOnly: true,
+	}
+	handlers.SetStore(store)
+
+	// Build routes
+	mux := http.NewServeMux()
+
+	// Public routes
+	mux.HandleFunc("GET /", handlers.IndexPage)
+	mux.HandleFunc("GET /admin/login", handlers.LoginPage)
+	mux.HandleFunc("POST /api/auth/login", handlers.Login)
+	mux.HandleFunc("POST /api/auth/logout", handlers.Logout)
+
+	// Static files
+	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+
+	// Protected routes
+	auth := middleware.CheckAuth(store)
+
+	mux.Handle("GET /admin", auth(http.HandlerFunc(handlers.AdminPage)))
+	mux.Handle("GET /api/links", auth(http.HandlerFunc(handlers.ListLinks)))
+	mux.Handle("POST /api/links", auth(http.HandlerFunc(handlers.CreateLink)))
+	mux.Handle("PUT /api/links/reorder", auth(http.HandlerFunc(handlers.ReorderLinks)))
+	mux.Handle("PUT /api/links/{id}", auth(http.HandlerFunc(handlers.UpdateLink)))
+	mux.Handle("DELETE /api/links/{id}", auth(http.HandlerFunc(handlers.DeleteLink)))
+	mux.Handle("GET /api/settings", auth(http.HandlerFunc(handlers.GetSettings)))
+	mux.Handle("PUT /api/settings", auth(http.HandlerFunc(handlers.UpdateSettings)))
+
+	// Start
+	addr := ":" + port
+	fmt.Printf("LinkTree server starting on http://0.0.0.0%s\n", addr)
+	if err := http.ListenAndServe(addr, mux); err != nil {
+		log.Fatalf("Server failed: %v", err)
+	}
+}

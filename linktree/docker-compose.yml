@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+  linktree:
+    build: .
+    container_name: linktree
+    ports:
+      - "3001:8080"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - PORT=8080
+      - ADMIN_PASSWORD=ChangeMe123!
+      - SESSION_SECRET=linktree-ahpeng-secret-2026
+      - TZ=Asia/Shanghai
+    restart: unless-stopped
