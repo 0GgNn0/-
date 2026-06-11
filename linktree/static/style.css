@@ -318,7 +318,6 @@ body::before {
 }
 
 .link-btn:hover {
-  transform: translateY(-2px) scale(1.02);
   background: var(--btn-hover-bg);
   border-color: var(--btn-hover-border);
   box-shadow: var(--btn-hover-shadow);
@@ -333,7 +332,6 @@ body::before {
 }
 
 .link-btn:active {
-  transform: translateY(0) scale(0.98);
 }
 
 .link-icon {
