@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{{.DisplayName}} - 个人链接聚合页">
+  <title>{{.DisplayName}}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body data-theme="{{.Theme}}">
+  <!-- 主题切换 -->
+  <button class="theme-toggle" id="themeToggle" title="切换主题" aria-label="切换暗色/亮色模式">
+    <span class="theme-icon" id="themeIcon">🌙</span>
+  </button>
+
+  <!-- 主卡片 -->
+  <main class="container">
+    <!-- 头像 -->
+    <div class="avatar-wrap">
+      {{if .AvatarURL}}
+      <img src="{{.AvatarURL}}" alt="{{.DisplayName}}">
+      {{else}}
+      <div class="avatar-placeholder">🙂</div>
+      {{end}}
+    </div>
+
+    <!-- 名字 -->
+    <h1 class="name">{{.DisplayName}}</h1>
+
+    <!-- 简介 -->
+    {{if .Bio}}
+    <p class="bio">{{.Bio}}</p>
+    {{else}}
+    <div style="height: 10px;"></div>
+    {{end}}
+
+    <!-- 链接按钮 -->
+    <div class="links">
+      {{range .Links}}
+      <a class="link-btn" href="{{.URL}}" target="_blank" rel="noopener noreferrer">
+        {{if .Icon}}<span class="link-icon">{{.Icon}}</span>{{end}}
+        {{.Title}}
+      </a>
+      {{end}}
+    </div>
+  </main>
+
+  <!-- 页脚 -->
+  <footer class="footer">
+    <a href="/admin/login" class="admin-link">管理</a>
+  </footer>
+
+  <script>
+    // 主题切换
+    (function() {
+      const html = document.documentElement;
+      const toggle = document.getElementById('themeToggle');
+      const icon = document.getElementById('themeIcon');
+      const storedTheme = localStorage.getItem('linktree-theme') || 'auto';
+
+      function getSystemTheme() {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+
+      function getEffectiveTheme() {
+        if (storedTheme === 'auto') {
+          return getSystemTheme();
+        }
+        return storedTheme;
+      }
+
+      function applyTheme(theme) {
+        html.setAttribute('data-theme', theme);
+        icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+        localStorage.setItem('linktree-theme', theme);
+      }
+
+      // 初始主题
+      applyTheme(getEffectiveTheme());
+
+      // 切换按钮
+      toggle.addEventListener('click', function() {
+        const current = html.getAttribute('data-theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        applyTheme(next);
+      });
+
+      // 系统主题变化时自动跟随
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
+        if (localStorage.getItem('linktree-theme') === 'auto') {
+          applyTheme(getSystemTheme());
+        }
+      });
+    })();
+  </script>
+  <script>
+    // 3D 倾斜效果
+    (function() {
+      const buttons = document.querySelectorAll('.link-btn');
+      
+      buttons.forEach(btn => {
+        btn.addEventListener('mousemove', (e) => {
+          const rect = btn.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          const centerX = rect.width / 2;
+          const centerY = rect.height / 2;
+          const rotateX = (y - centerY) / 10;
+          const rotateY = (centerX - x) / 10;
+          
+          btn.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+        });
+        
+        btn.addEventListener('mouseleave', () => {
+          btn.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
+        });
+        
+        btn.addEventListener('mousedown', () => {
+          btn.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(0.98)';
+        });
+        
+        btn.addEventListener('mouseup', () => {
+          btn.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
