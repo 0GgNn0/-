@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>管理后台 - LinkTree</title>
   <link rel="icon" type="image/jpeg" href="/static/avatar.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body data-theme="light">
@@ -12,87 +14,114 @@
     <span class="theme-icon" id="themeIcon">🌙</span>
   </button>
 
-  <div class="admin-container">
-    <div class="admin-header">
-      <h1>管理后台</h1>
-      <div class="actions">
-        <a href="/" class="btn btn-sm" style="text-decoration:none; background:var(--input-bg); color:var(--text-primary); display:inline-flex; align-items:center;">← 首页</a>
-        <button class="btn btn-sm" style="background:var(--input-bg); color:var(--text-primary);" onclick="logout()">退出</button>
+  <div class="admin-layout">
+    <!-- ===== 侧边栏 ===== -->
+    <aside class="admin-sidebar">
+      <div class="side-brand">
+        <img src="/static/avatar.jpg" alt="Avatar" class="side-avatar">
+        <span class="side-name">LinkTree</span>
       </div>
-    </div>
+      <nav class="side-nav">
+        <div class="side-item active" data-tab="links" onclick="switchTab('links')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          <span>链接</span>
+        </div>
+        <div class="side-item" data-tab="files" onclick="switchTab('files')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          <span>文件</span>
+        </div>
+        <div class="side-item" data-tab="works" onclick="switchTab('works')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <span>作品</span>
+        </div>
+        <div class="side-item" data-tab="chats" onclick="switchTab('chats')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span>对话</span>
+        </div>
+        <div class="side-item" data-tab="settings" onclick="switchTab('settings')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span>设置</span>
+        </div>
+      </nav>
+      <div class="side-foot">
+        <a href="/" class="side-link">返回首页</a>
+        <button class="side-link danger" onclick="logout()">退出登录</button>
+      </div>
+    </aside>
 
-    <!-- Tab 导航 -->
-    <div class="admin-tabs">
-      <button class="admin-tab active" data-tab="links" onclick="switchTab('links')">链接</button>
-      <button class="admin-tab" data-tab="files" onclick="switchTab('files')">文件</button>
-      <button class="admin-tab" data-tab="works" onclick="switchTab('works')">作品</button>
-      <button class="admin-tab" data-tab="chats" onclick="switchTab('chats')">对话</button>
-      <button class="admin-tab" data-tab="settings" onclick="switchTab('settings')">设置</button>
-    </div>
+    <!-- ===== 主内容区 ===== -->
+    <main class="admin-main">
+      <!-- 移动端 Tab 栏 -->
+      <div class="mobile-tabs">
+        <button class="mobile-tab active" data-tab="links" onclick="switchTab('links')">链接</button>
+        <button class="mobile-tab" data-tab="files" onclick="switchTab('files')">文件</button>
+        <button class="mobile-tab" data-tab="works" onclick="switchTab('works')">作品</button>
+        <button class="mobile-tab" data-tab="chats" onclick="switchTab('chats')">对话</button>
+        <button class="mobile-tab" data-tab="settings" onclick="switchTab('settings')">设置</button>
+      </div>
 
-    <!-- ==================== 链接 Tab ==================== -->
-    <div class="tab-content active" id="tab-links">
-      <div class="section">
-        <h2>链接管理</h2>
-        <div class="inline-form">
+      <!-- ==================== 链接面板 ==================== -->
+      <div class="admin-panel active" id="panel-links">
+        <h1 class="admin-h1">链接管理</h1>
+        <div class="admin-add">
           <input type="text" id="newTitle" placeholder="链接名称" maxlength="30">
           <input type="url" id="newURL" placeholder="https://..." style="flex:2;">
           <button class="btn btn-primary btn-sm" onclick="addLink()">+ 添加</button>
         </div>
-        <table class="link-table">
-          <thead>
-            <tr>
-              <th style="width:30%;">名称</th>
-              <th style="width:45%;">URL</th>
-              <th style="width:10%;">排序</th>
-              <th style="width:15%;">操作</th>
-            </tr>
-          </thead>
-          <tbody id="linksBody">
-            <tr><td colspan="4" style="text-align:center; color:var(--text-secondary);">加载中...</td></tr>
-          </tbody>
-        </table>
+        <div class="admin-card">
+          <table class="link-table">
+            <thead>
+              <tr>
+                <th style="width:30%;">名称</th>
+                <th style="width:45%;">URL</th>
+                <th style="width:10%;">排序</th>
+                <th style="width:15%;">操作</th>
+              </tr>
+            </thead>
+            <tbody id="linksBody">
+              <tr><td colspan="4" style="text-align:center; color:var(--text-secondary);">加载中...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
 
-    <!-- ==================== 文件 Tab ==================== -->
-    <div class="tab-content" id="tab-files">
-      <div class="section">
-        <h2>文件管理</h2>
-        <div class="inline-form">
-          <select id="fileCategoryFilter" onchange="loadFiles()" style="height:36px; padding:0 12px; border-radius:8px; border:1px solid var(--input-border); background:var(--input-bg); color:var(--text-primary); font-size:14px;">
+      <!-- ==================== 文件面板 ==================== -->
+      <div class="admin-panel" id="panel-files">
+        <h1 class="admin-h1">文件管理</h1>
+        <div class="admin-add">
+          <select id="fileCategoryFilter" onchange="loadFiles()">
             <option value="">全部分类</option>
           </select>
           <button class="btn btn-sm" onclick="showNewCategoryModal('file')">+ 新建分类</button>
           <div style="flex:1;"></div>
           <label class="btn btn-primary btn-sm" style="cursor:pointer;">
-            📎 上传文件
+            上传文件
             <input type="file" id="fileUploadInput" multiple style="display:none;" onchange="uploadFiles(this.files)">
           </label>
         </div>
-        <table class="link-table">
-          <thead>
-            <tr>
-              <th style="width:35%;">文件名</th>
-              <th style="width:15%;">大小</th>
-              <th style="width:15%;">分类</th>
-              <th style="width:10%;">下载</th>
-              <th style="width:25%;">操作</th>
-            </tr>
-          </thead>
-          <tbody id="filesBody">
-            <tr><td colspan="5" style="text-align:center; color:var(--text-secondary);">加载中...</td></tr>
-          </tbody>
-        </table>
+        <div class="admin-card">
+          <table class="link-table">
+            <thead>
+              <tr>
+                <th style="width:35%;">文件名</th>
+                <th style="width:15%;">大小</th>
+                <th style="width:15%;">分类</th>
+                <th style="width:10%;">下载</th>
+                <th style="width:25%;">操作</th>
+              </tr>
+            </thead>
+            <tbody id="filesBody">
+              <tr><td colspan="5" style="text-align:center; color:var(--text-secondary);">加载中...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
 
-    <!-- ==================== 作品 Tab ==================== -->
-    <div class="tab-content" id="tab-works">
-      <div class="section">
-        <h2>作品管理</h2>
-        <div class="inline-form">
-          <select id="workCategoryFilter" onchange="loadWorks()" style="height:36px; padding:0 12px; border-radius:8px; border:1px solid var(--input-border); background:var(--input-bg); color:var(--text-primary); font-size:14px;">
+      <!-- ==================== 作品面板 ==================== -->
+      <div class="admin-panel" id="panel-works">
+        <h1 class="admin-h1">作品管理</h1>
+        <div class="admin-add">
+          <select id="workCategoryFilter" onchange="loadWorks()">
             <option value="">全部分类</option>
           </select>
           <button class="btn btn-sm" onclick="showNewCategoryModal('work')">+ 新建分类</button>
@@ -103,86 +132,90 @@
           <div style="text-align:center; color:var(--text-secondary); padding:40px;">加载中...</div>
         </div>
       </div>
-    </div>
 
-    <!-- ==================== 对话 Tab ==================== -->
-    <div class="tab-content" id="tab-chats">
-      <div class="section">
-        <h2>对话管理</h2>
-        <div class="inline-form">
+      <!-- ==================== 对话面板 ==================== -->
+      <div class="admin-panel" id="panel-chats">
+        <h1 class="admin-h1">对话管理</h1>
+        <div class="admin-add">
           <div style="flex:1;"></div>
           <a href="/chat" class="btn btn-primary btn-sm" style="text-decoration:none; display:inline-flex; align-items:center;">+ 新对话</a>
         </div>
-        <table class="link-table">
-          <thead>
-            <tr>
-              <th style="width:35%;">标题</th>
-              <th style="width:15%;">模型</th>
-              <th style="width:10%;">消息数</th>
-              <th style="width:20%;">更新时间</th>
-              <th style="width:20%;">操作</th>
-            </tr>
-          </thead>
-          <tbody id="chatsBody">
-            <tr><td colspan="5" style="text-align:center; color:var(--text-secondary);">加载中...</td></tr>
-          </tbody>
-        </table>
+        <div class="admin-card">
+          <table class="link-table">
+            <thead>
+              <tr>
+                <th style="width:35%;">标题</th>
+                <th style="width:15%;">模型</th>
+                <th style="width:10%;">消息数</th>
+                <th style="width:20%;">更新时间</th>
+                <th style="width:20%;">操作</th>
+              </tr>
+            </thead>
+            <tbody id="chatsBody">
+              <tr><td colspan="5" style="text-align:center; color:var(--text-secondary);">加载中...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
 
-    <!-- ==================== 设置 Tab ==================== -->
-    <div class="tab-content" id="tab-settings">
-      <div class="section">
-        <h2>个人信息</h2>
-        <div class="settings-form">
-          <div class="form-group">
-            <label>显示名称</label>
-            <input type="text" id="settingName" placeholder="你的名字">
+      <!-- ==================== 设置面板 ==================== -->
+      <div class="admin-panel" id="panel-settings">
+        <h1 class="admin-h1">系统设置</h1>
+
+        <div class="settings-block">
+          <h2 class="settings-block-title">个人信息</h2>
+          <div class="settings-form">
+            <div class="form-group">
+              <label>显示名称</label>
+              <input type="text" id="settingName" placeholder="你的名字">
+            </div>
+            <div class="form-group">
+              <label>简介 / 签名</label>
+              <textarea id="settingBio" placeholder="一句话介绍自己"></textarea>
+            </div>
+            <div class="form-group">
+              <label>头像 (图片URL 或 Data URL)</label>
+              <input type="text" id="settingAvatar" placeholder="https://example.com/avatar.jpg">
+            </div>
+            <button class="btn btn-primary" onclick="saveSettings()" style="width:auto; padding:0 24px;">保存设置</button>
           </div>
-          <div class="form-group">
-            <label>简介 / 签名</label>
-            <textarea id="settingBio" placeholder="一句话介绍自己"></textarea>
+        </div>
+
+        <div class="settings-block">
+          <h2 class="settings-block-title">修改密码</h2>
+          <div class="settings-form">
+            <div class="form-group">
+              <label>新密码</label>
+              <input type="password" id="newPassword" placeholder="输入新密码">
+            </div>
+            <div class="form-group">
+              <label>确认密码</label>
+              <input type="password" id="confirmPassword" placeholder="再次输入新密码">
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="changePassword()" style="width:auto; padding:0 24px;">修改密码</button>
           </div>
-          <div class="form-group">
-            <label>头像 (图片URL 或 Data URL)</label>
-            <input type="text" id="settingAvatar" placeholder="https://example.com/avatar.jpg">
+        </div>
+
+        <div class="settings-block">
+          <h2 class="settings-block-title">AI 对话设置</h2>
+          <div class="settings-form">
+            <div class="form-group">
+              <label>API Base URL</label>
+              <input type="text" id="settingAIBaseURL" placeholder="https://api.deepseek.com">
+            </div>
+            <div class="form-group">
+              <label>API Key</label>
+              <input type="text" id="settingAIAPIKey" placeholder="sk-...">
+            </div>
+            <div class="form-group">
+              <label>模型名称</label>
+              <input type="text" id="settingAIModel" placeholder="deepseek-v4-flash">
+            </div>
+            <button class="btn btn-primary" onclick="saveAISettings()" style="width:auto; padding:0 24px;">保存 AI 设置</button>
           </div>
-          <button class="btn btn-primary" onclick="saveSettings()" style="width:auto; padding:0 24px;">保存设置</button>
         </div>
       </div>
-      <div class="section">
-        <h2>修改密码</h2>
-        <div class="settings-form">
-          <div class="form-group">
-            <label>新密码</label>
-            <input type="password" id="newPassword" placeholder="输入新密码">
-          </div>
-          <div class="form-group">
-            <label>确认密码</label>
-            <input type="password" id="confirmPassword" placeholder="再次输入新密码">
-          </div>
-          <button class="btn btn-danger btn-sm" onclick="changePassword()" style="width:auto; padding:0 24px;">修改密码</button>
-        </div>
-      </div>
-      <div class="section">
-        <h2>AI 对话设置</h2>
-        <div class="settings-form">
-          <div class="form-group">
-            <label>API Base URL</label>
-            <input type="text" id="settingAIBaseURL" placeholder="https://api.deepseek.com">
-          </div>
-          <div class="form-group">
-            <label>API Key</label>
-            <input type="text" id="settingAIAPIKey" placeholder="sk-...">
-          </div>
-          <div class="form-group">
-            <label>模型名称</label>
-            <input type="text" id="settingAIModel" placeholder="deepseek-v4-flash">
-          </div>
-          <button class="btn btn-primary" onclick="saveAISettings()" style="width:auto; padding:0 24px;">保存 AI 设置</button>
-        </div>
-      </div>
-    </div>
+    </main>
   </div>
 
   <!-- ==================== 新建分类弹窗 ==================== -->
@@ -367,10 +400,12 @@
 
     // ==================== Tab 切换 ====================
     function switchTab(tabName) {
-      document.querySelectorAll('.admin-tab').forEach(function(t) { t.classList.remove('active'); });
-      document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
-      document.querySelector('[data-tab="'+tabName+'"]').classList.add('active');
-      document.getElementById('tab-'+tabName).classList.add('active');
+      document.querySelectorAll('.side-item').forEach(function(t) { t.classList.remove('active'); });
+      document.querySelectorAll('.mobile-tab').forEach(function(t) { t.classList.remove('active'); });
+      document.querySelectorAll('.admin-panel').forEach(function(t) { t.classList.remove('active'); });
+      document.querySelector('.side-item[data-tab="'+tabName+'"]').classList.add('active');
+      document.querySelector('.mobile-tab[data-tab="'+tabName+'"]').classList.add('active');
+      document.getElementById('panel-'+tabName).classList.add('active');
     }
 
     // ==================== 弹窗控制 ====================

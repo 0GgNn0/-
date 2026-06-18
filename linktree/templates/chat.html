@@ -5,44 +5,57 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI 对话</title>
   <link rel="icon" type="image/jpeg" href="/static/avatar.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body data-theme="light" class="chat-page">
   <div class="chat-layout">
     <!-- 侧边栏 -->
     <aside class="chat-sidebar" id="chatSidebar">
-      <div class="chat-sidebar-header">
-        <a href="/" class="chat-back-btn" title="返回首页">←</a>
+      <div class="chat-sidebar-top">
+        <a href="/" class="chat-back-btn" title="返回首页">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        </a>
         <button class="chat-new-btn" onclick="newSession()">+ 新对话</button>
       </div>
-      <div class="chat-sessions" id="chatSessions">
+      <div class="chat-session-list" id="chatSessions">
         <div style="color:var(--text-secondary); font-size:13px; text-align:center; padding:20px;">加载中...</div>
       </div>
     </aside>
 
     <!-- 主对话区 -->
     <main class="chat-main">
-      <div class="chat-header">
-        <button class="chat-menu-btn" id="menuBtn" onclick="toggleSidebar()">☰</button>
-        <span class="chat-header-title" id="chatTitle">AI 对话</span>
+      <div class="chat-topbar">
+        <button class="chat-mobile-menu" id="menuBtn" onclick="toggleSidebar()">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <span class="chat-topbar-title" id="chatTitle">AI 对话</span>
         <div style="flex:1;"></div>
-        <select id="chatModelSelect" class="chat-model-select" onchange="changeModel()">
+        <select id="chatModelSelect" class="chat-topbar-model" onchange="changeModel()">
         </select>
       </div>
 
       <div class="chat-messages" id="chatMessages">
         <div class="chat-welcome">
-          <img src="/static/avatar.jpg" alt="AI" class="chat-welcome-avatar">
+          <div class="chat-welcome-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
           <h2>AI 助手</h2>
           <p>有任何问题，尽管问我</p>
+          <div class="chat-quick-actions">
+            <span class="chat-quick-btn" onclick="document.getElementById('chatInput').value='帮我写一段 Go HTTP 服务';document.getElementById('chatInput').dispatchEvent(new Event('input'));">帮我写一段 Go HTTP 服务</span>
+            <span class="chat-quick-btn" onclick="document.getElementById('chatInput').value='解释 CSS Grid 布局';document.getElementById('chatInput').dispatchEvent(new Event('input'));">解释 CSS Grid 布局</span>
+            <span class="chat-quick-btn" onclick="document.getElementById('chatInput').value='推荐学习资源';document.getElementById('chatInput').dispatchEvent(new Event('input'));">推荐学习资源</span>
+          </div>
         </div>
       </div>
 
       <div class="chat-input-area">
-        <div class="chat-input-wrap">
+        <div class="chat-input-box">
           <textarea id="chatInput" placeholder="输入消息..." rows="1" maxlength="4000"></textarea>
-          <button class="chat-send-btn" id="sendBtn" onclick="sendMessage()" disabled>
-            <span class="send-icon">↑</span>
+          <button class="chat-send" id="sendBtn" onclick="sendMessage()" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
           </button>
         </div>
         <div class="chat-input-hint">AI 可能会犯错，请核实重要信息</div>
@@ -118,9 +131,9 @@
       var html = '';
       sessions.forEach(function(s) {
         var active = s.id === currentSessionID ? ' active' : '';
-        html += '<div class="chat-session-item' + active + '" onclick="selectSession(' + s.id + ')">' +
-          '<span class="session-title">' + esc(s.title) + '</span>' +
-          '<button class="session-del" onclick="event.stopPropagation(); deleteSession(' + s.id + ')" title="删除">&times;</button>' +
+        html += '<div class="chat-session' + active + '" onclick="selectSession(' + s.id + ')">' +
+          '<span class="chat-session-title">' + esc(s.title) + '</span>' +
+          '<button class="chat-session-del" onclick="event.stopPropagation(); deleteSession(' + s.id + ')" title="删除">&times;</button>' +
         '</div>';
       });
       el.innerHTML = html;
@@ -130,8 +143,7 @@
     function newSession() {
       currentSessionID = 0;
       document.getElementById('chatTitle').textContent = 'AI 对话';
-      document.getElementById('chatMessages').innerHTML =
-        '<div class="chat-welcome"><div class="chat-welcome-icon">🤖</div><h2>AI 助手</h2><p>有任何问题，尽管问我</p></div>';
+      document.getElementById('chatMessages').innerHTML = '<div class="chat-welcome"><div class="chat-welcome-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><h2>AI 助手</h2><p>有任何问题，尽管问我</p><div class="chat-quick-actions"><span class="chat-quick-btn" onclick="document.getElementById(\'chatInput\').value=\'帮我写一段 Go HTTP 服务\';document.getElementById(\'chatInput\').dispatchEvent(new Event(\'input\'));">帮我写一段 Go HTTP 服务</span><span class="chat-quick-btn" onclick="document.getElementById(\'chatInput\').value=\'解释 CSS Grid 布局\';document.getElementById(\'chatInput\').dispatchEvent(new Event(\'input\'));">解释 CSS Grid 布局</span><span class="chat-quick-btn" onclick="document.getElementById(\'chatInput\').value=\'推荐学习资源\';document.getElementById(\'chatInput\').dispatchEvent(new Event(\'input\'));">推荐学习资源</span></div></div>';
       renderSessions();
       document.getElementById('chatSidebar').classList.remove('open');
     }
@@ -159,7 +171,7 @@
       apiCall('/api/chat/sessions/' + sessionID + '/messages', 'GET').then(function(msgs) {
         var el = document.getElementById('chatMessages');
         if (msgs.length === 0) {
-          el.innerHTML = '<div class="chat-welcome"><div class="chat-welcome-icon">🤖</div><h2>AI 助手</h2><p>有任何问题，尽管问我</p></div>';
+          el.innerHTML = '<div class="chat-welcome"><div class="chat-welcome-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><h2>AI 助手</h2><p>有任何问题，尽管问我</p><div class="chat-quick-actions"><span class="chat-quick-btn" onclick="document.getElementById(\'chatInput\').value=\'帮我写一段 Go HTTP 服务\';document.getElementById(\'chatInput\').dispatchEvent(new Event(\'input\'));">帮我写一段 Go HTTP 服务</span><span class="chat-quick-btn" onclick="document.getElementById(\'chatInput\').value=\'解释 CSS Grid 布局\';document.getElementById(\'chatInput\').dispatchEvent(new Event(\'input\'));">解释 CSS Grid 布局</span><span class="chat-quick-btn" onclick="document.getElementById(\'chatInput\').value=\'推荐学习资源\';document.getElementById(\'chatInput\').dispatchEvent(new Event(\'input\'));">推荐学习资源</span></div></div>';
           return;
         }
         el.innerHTML = '';
@@ -178,12 +190,13 @@
       if (welcome) welcome.remove();
 
       var div = document.createElement('div');
-      div.className = 'chat-msg chat-msg-' + role;
 
       if (role === 'user') {
-        div.innerHTML = '<div class="chat-msg-content">' + esc(content) + '</div>';
+        div.className = 'msg user';
+        div.innerHTML = '<div class="msg-body"><div class="msg-bubble">' + esc(content) + '</div></div>';
       } else {
-        div.innerHTML = '<div class="chat-msg-avatar"><img src="/static/avatar.jpg" alt="AI"></div><div class="chat-msg-content">' + renderMarkdown(content) + '</div>';
+        div.className = 'msg assistant';
+        div.innerHTML = '<div class="msg-avatar"><img src="/static/avatar.jpg" alt="AI"></div><div class="msg-body"><div class="msg-bubble">' + renderMarkdown(content) + '</div></div>';
       }
       el.appendChild(div);
     }
@@ -194,9 +207,9 @@
       if (welcome) welcome.remove();
 
       var div = document.createElement('div');
-      div.className = 'chat-msg chat-msg-assistant';
+      div.className = 'msg assistant';
       div.id = 'streamingMsg';
-      div.innerHTML = '<div class="chat-msg-avatar"><img src="/static/avatar.jpg" alt="AI"></div><div class="chat-msg-content"><span class="chat-cursor">▊</span></div>';
+      div.innerHTML = '<div class="msg-avatar"><img src="/static/avatar.jpg" alt="AI"></div><div class="msg-body"><div class="msg-bubble"><span class="chat-cursor">▊</span></div></div>';
       el.appendChild(div);
       return div;
     }
@@ -207,8 +220,8 @@
       if (welcome) welcome.remove();
 
       var div = document.createElement('div');
-      div.className = 'chat-msg chat-msg-error';
-      div.innerHTML = '<div class="chat-msg-avatar" style="background:rgba(231,76,60,0.1);">⚠️</div><div class="chat-msg-content">' + esc(msg) + '</div>';
+      div.className = 'msg error';
+      div.innerHTML = '<div class="msg-avatar" style="background:rgba(239,68,68,0.1);"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div><div class="msg-body"><div class="msg-bubble" style="background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.2);color:var(--red);">' + esc(msg) + '</div></div>';
       el.appendChild(div);
       scrollToBottom();
     }
@@ -269,7 +282,7 @@
                   document.getElementById('chatTitle').textContent = data.session.title;
                 } else if (data.type === 'delta') {
                   fullContent += data.content;
-                  var contentEl = streamDiv.querySelector('.chat-msg-content');
+                  var contentEl = streamDiv.querySelector('.msg-bubble');
                   contentEl.innerHTML = renderMarkdown(fullContent) + '<span class="chat-cursor">▊</span>';
                   scrollToBottom();
                 } else if (data.type === 'error') {

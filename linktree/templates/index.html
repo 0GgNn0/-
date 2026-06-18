@@ -6,179 +6,248 @@
   <meta name="description" content="{{.DisplayName}} - 个人链接聚合页">
   <title>{{.DisplayName}}</title>
   <link rel="icon" type="image/jpeg" href="/static/avatar.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body data-theme="{{.Theme}}">
-  <nav class="top-nav" id="topNav">
-    <div class="nav-inner">
-      <img src="/static/avatar.jpg" alt="{{.DisplayName}}" class="nav-logo">
-      <span class="nav-title">{{.DisplayName}}</span>
-    </div>
-  </nav>
 
+  <!-- 主题切换 -->
   <button class="theme-toggle" id="themeToggle" title="切换主题" aria-label="切换暗色/亮色模式">
-    <span class="theme-icon" id="themeIcon">&#127769;</span>
+    <span class="theme-icon" id="themeIcon">
+      <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </span>
   </button>
 
-  <div class="main-layout">
-    <main class="container">
-    <div class="avatar-wrap" id="avatarWrap" style="cursor:pointer">
-      <img src="/static/avatar.jpg" alt="{{.DisplayName}}">
-    </div>
+  <!-- Bento 2.0 主布局 -->
+  <div class="home-wrap">
+    <div class="bento">
 
-    <div class="avatar-modal" id="avatarModal">
-      <img src="/static/avatar.jpg" alt="{{.DisplayName}}">
-      <button class="modal-close" id="modalClose">&times;</button>
-    </div>
-
-    <h1 class="name">{{.DisplayName}}</h1>
-
-    {{if .Bio}}
-    <p class="bio">{{.Bio}}</p>
-    {{else}}
-    <div style="height: 10px;"></div>
-    {{end}}
-
-    <div class="links">
-      {{range .Links}}
-      <a class="link-btn" href="{{.URL}}" target="_blank" rel="noopener noreferrer">
-        {{if .Icon}}<span class="link-icon">{{.Icon}}</span>{{end}}
-        {{.Title}}
-      </a>
-      {{end}}
-    </div>
-
-    <div class="section-divider"></div>
-    <div class="section-header">
-      <h2 class="section-title">🎨 作品展示</h2>
-    </div>
-    {{if .Works}}
-    <div class="works-grid-public">
-      {{range .Works}}
-      <div class="work-card-public" onclick="openWorkModal({{.ID}})">
-        {{if .CoverURL}}
-        <img src="{{.CoverURL}}" alt="{{.Title}}" class="work-cover-public">
-        {{else}}
-        <div class="work-cover-placeholder-public">🎨</div>
-        {{end}}
-        <div class="work-info-public">
-          <div class="work-title-public">{{.Title}}</div>
-          {{if .Description}}<div class="work-desc-public">{{.Description}}</div>{{end}}
+      <!-- Row 1: 个人资料 / 时钟 / 天气 -->
+      <div class="tile tile-profile" style="grid-column: span 5;">
+        <div class="avatar-wrap" id="avatarWrap" style="cursor:pointer">
+          <img src="/static/avatar.jpg" alt="{{.DisplayName}}" class="profile-avatar">
+        </div>
+        <div class="profile-info">
+          <div class="profile-name">{{.DisplayName}}</div>
+          {{if .Bio}}<div class="profile-bio">{{.Bio}}</div>{{end}}
+        </div>
+        <div class="profile-actions">
+          <a href="/chat" class="profile-action-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            对话
+          </a>
+          <a href="/admin/login" class="profile-action-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            管理
+          </a>
         </div>
       </div>
-      {{end}}
-    </div>
-    {{else}}
-    <div class="empty-hint">暂无作品，等待添加</div>
-    {{end}}
 
-    <div class="section-divider"></div>
-    <div class="section-header">
-      <h2 class="section-title">📁 文件下载</h2>
-    </div>
-    {{if .Files}}
-    <div class="files-list-public">
-      {{range .Files}}
-      <a class="file-item-public" href="/api/files/download/{{.ID}}" target="_blank">
-        <span class="file-icon-public">
-          {{if eq .MimeType "image/jpeg"}}🖼️
-          {{else if eq .MimeType "image/png"}}🖼️
-          {{else if eq .MimeType "image/gif"}}🖼️
-          {{else if eq .MimeType "application/pdf"}}📄
-          {{else if eq .MimeType "video/mp4"}}🎬
-          {{else if eq .MimeType "video/webm"}}🎬
-          {{else if eq .MimeType "application/zip"}}📦
-          {{else if eq .MimeType "application/x-rar-compressed"}}📦
-          {{else}}📎{{end}}
-        </span>
-        <span class="file-name-public">{{.OriginalName}}</span>
-        <span class="file-size-public">{{.FormattedSize}}</span>
-      </a>
-      {{end}}
-    </div>
-    {{else}}
-    <div class="empty-hint">暂无文件，等待上传</div>
-    {{end}}
-  </main>
-
-  <div class="widgets-standalone">
-    <div class="widget clock-widget" id="clockWidget" style="cursor:pointer">
-      <div class="widget-icon">&#x1F550;</div>
-      <div class="widget-content">
-        <div class="clock-time" id="clockTime">--:--:--</div>
+      <div class="tile tile-clock" id="clockWidget" style="grid-column: span 4; cursor:pointer;">
+        <div class="clock-value" id="clockTime">--:--</div>
         <div class="clock-date" id="clockDate">----/--/--</div>
       </div>
-    </div>
 
-    <div class="widget calendar-widget" id="calendarWidget" style="cursor:pointer">
-      <div class="widget-icon">&#x1F4C5;</div>
-      <div class="widget-content">
-        <div class="calendar-day" id="calendarDay">--</div>
-        <div class="calendar-info">
-          <span class="calendar-month" id="calendarMonth">--&#x6708;</span>
-          <span class="calendar-weekday" id="calendarWeekday">&#x661F;&#x671F;-</span>
+      <div class="tile tile-weather" id="weatherWidget" style="grid-column: span 3; cursor:pointer;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="weather-svg-icon"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <div class="weather-val" id="weatherTemp">--°C</div>
+        <div class="weather-label" id="weatherDesc">加载中...</div>
+      </div>
+
+      <!-- Row 2: 链接 / 日历 -->
+      <div class="tile tile-links" style="grid-column: span 7;">
+        <div class="tile-label">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          链接
+        </div>
+        <div class="links-stack">
+          {{range .Links}}
+          <a class="link-item" href="{{.URL}}" target="_blank" rel="noopener noreferrer">
+            <div class="link-icon-box">
+              {{if .Icon}}{{.Icon}}{{else}}
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              {{end}}
+            </div>
+            <div class="link-text">
+              <div class="link-title">{{.Title}}</div>
+              <div class="link-url">{{.URL}}</div>
+            </div>
+            <div class="link-arrow">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+            </div>
+          </a>
+          {{end}}
         </div>
       </div>
-    </div>
 
-    <div class="widget weather-widget" id="weatherWidget" style="cursor:pointer">
-      <div class="widget-icon" id="weatherIcon">&#x1F324;&#xFE0F;</div>
-      <div class="widget-content">
-        <div class="weather-temp" id="weatherTemp">--&#x00B0;C</div>
-        <div class="weather-desc" id="weatherDesc">&#x52A0;&#x8F7D;&#x4E2D;...</div>
+      <div class="tile tile-calendar" id="calendarWidget" style="grid-column: span 5; cursor:pointer;">
+        <div class="cal-day" id="calendarDay">--</div>
+        <div class="cal-info">
+          <span class="cal-month" id="calendarMonth">--月</span>
+          <span class="cal-weekday" id="calendarWeekday">星期-</span>
+        </div>
       </div>
+
+      <!-- Row 3: 作品 / 文件 -->
+      <div class="tile tile-works" style="grid-column: span 8;">
+        <div class="tile-label">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          作品
+        </div>
+        {{if .Works}}
+        <div class="works-content">
+          {{range $i, $w := .Works}}
+          {{if eq $i 0}}
+          <div class="works-featured" onclick="openWorkModal({{$w.ID}})">
+            {{if $w.CoverURL}}
+            <img src="{{$w.CoverURL}}" alt="{{$w.Title}}" class="works-featured-cover">
+            {{else}}
+            <div class="works-featured-placeholder">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </div>
+            {{end}}
+            <div class="works-featured-info">
+              <div class="works-featured-title">{{$w.Title}}</div>
+              {{if $w.Description}}<div class="works-featured-desc">{{$w.Description}}</div>{{end}}
+            </div>
+          </div>
+          {{end}}
+          {{end}}
+          <div class="works-grid">
+            {{range $i, $w := .Works}}
+            {{if gt $i 0}}
+            <div class="work-card" onclick="openWorkModal({{$w.ID}})">
+              {{if $w.CoverURL}}
+              <img src="{{$w.CoverURL}}" alt="{{$w.Title}}" class="work-card-cover">
+              {{else}}
+              <div class="work-card-placeholder">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              </div>
+              {{end}}
+              <div class="work-card-title">{{$w.Title}}</div>
+              {{if $w.Description}}<div class="work-card-desc">{{$w.Description}}</div>{{end}}
+            </div>
+            {{end}}
+            {{end}}
+          </div>
+        </div>
+        {{else}}
+        <div class="empty-state">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <span>暂无作品，等待添加</span>
+        </div>
+        {{end}}
+      </div>
+
+      <div class="tile tile-files" style="grid-column: span 4;">
+        <div class="tile-label">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+          文件
+        </div>
+        {{if .Files}}
+        <div class="files-stack">
+          {{range .Files}}
+          <a class="file-card" href="/api/files/download/{{.ID}}" target="_blank">
+            <div class="file-icon-box">
+              {{if eq .MimeType "image/jpeg"}}<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              {{else if eq .MimeType "image/png"}}<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              {{else if eq .MimeType "image/gif"}}<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              {{else if eq .MimeType "application/pdf"}}<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              {{else if eq .MimeType "video/mp4"}}<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+              {{else if eq .MimeType "video/webm"}}<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+              {{else if eq .MimeType "application/zip"}}<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>
+              {{else if eq .MimeType "application/x-rar-compressed"}}<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>
+              {{else}}<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+              {{end}}
+            </div>
+            <div class="file-text">
+              <div class="file-name">{{.OriginalName}}</div>
+              <div class="file-meta">{{.MimeType}}</div>
+            </div>
+            <div class="file-size">{{.FormattedSize}}</div>
+            <div class="file-dl">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            </div>
+          </a>
+          {{end}}
+        </div>
+        {{else}}
+        <div class="empty-state">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+          <span>暂无文件，等待上传</span>
+        </div>
+        {{end}}
+      </div>
+
+      <!-- Row 4: 页脚 -->
+      <div class="home-footer" style="grid-column: span 12;">
+        <a href="/chat" class="footer-link">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          AI 对话
+        </a>
+        <a href="/admin/login" class="footer-link">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          管理后台
+        </a>
+      </div>
+
     </div>
   </div>
+
+  <!-- 头像弹窗 -->
+  <div class="avatar-modal" id="avatarModal">
+    <img src="/static/avatar.jpg" alt="{{.DisplayName}}">
+    <button class="modal-close" id="modalClose">&times;</button>
   </div>
 
+  <!-- 时钟弹窗 -->
   <div class="modal" id="clockModal">
     <div class="modal-content clock-modal-content">
       <button class="modal-close" id="clockModalClose">&times;</button>
-      <div class="clock-modal-title">&#x5F53;&#x524D;&#x65F6;&#x95F4;</div>
+      <div class="clock-modal-title">当前时间</div>
       <canvas id="clockCanvas" width="280" height="280"></canvas>
       <div class="clock-digital" id="clockDigital">--:--:--</div>
-      <div class="clock-date-detail" id="clockDateDetail">----&#x5E74;--&#x6708;--&#x65E5;</div>
+      <div class="clock-date-detail" id="clockDateDetail">----年--月--日</div>
     </div>
   </div>
 
+  <!-- 日历弹窗 -->
   <div class="modal" id="calendarModal">
     <div class="modal-content calendar-modal-content">
       <button class="modal-close" id="calendarModalClose">&times;</button>
       <div class="calendar-header">
         <button class="cal-nav" id="calPrev">&lt;</button>
-        <span class="cal-title" id="calTitle">2026&#x5E74;6&#x6708;</span>
+        <span class="cal-title" id="calTitle">2026年6月</span>
         <button class="cal-nav" id="calNext">&gt;</button>
       </div>
       <div class="calendar-weekdays">
-        <span>&#x65E5;</span><span>&#x4E00;</span><span>&#x4E8C;</span><span>&#x4E09;</span><span>&#x56DB;</span><span>&#x4E94;</span><span>&#x516D;</span>
+        <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
       </div>
       <div class="calendar-grid" id="calendarGrid"></div>
     </div>
   </div>
 
+  <!-- 天气弹窗 -->
   <div class="modal" id="weatherModal">
     <div class="modal-content weather-modal-content">
       <button class="modal-close" id="weatherModalClose">&times;</button>
       <div class="weather-detail-header">
         <div class="weather-detail-icon" id="weatherDetailIcon">&#x1F324;&#xFE0F;</div>
-        <div class="weather-detail-temp" id="weatherDetailTemp">--&#x00B0;C</div>
-        <div class="weather-detail-desc" id="weatherDetailDesc">&#x52A0;&#x8F7D;&#x4E2D;...</div>
+        <div class="weather-detail-temp" id="weatherDetailTemp">--°C</div>
+        <div class="weather-detail-desc" id="weatherDetailDesc">加载中...</div>
       </div>
       <div class="weather-info-grid">
-        <div class="info-item"><span class="info-label">&#x4F53;&#x611F;&#x6E29;&#x5EA6;</span><span class="info-value" id="feelsLike">--&#x00B0;C</span></div>
-        <div class="info-item"><span class="info-label">&#x6E7F;&#x5EA6;</span><span class="info-value" id="humidity">--%</span></div>
-        <div class="info-item"><span class="info-label">&#x98CE;&#x901F;</span><span class="info-value" id="windSpeed">-- km/h</span></div>
-        <div class="info-item"><span class="info-label">&#x80FD;&#x89C1;&#x5EA6;</span><span class="info-value" id="visibility">-- km</span></div>
-        <div class="info-item"><span class="info-label">&#x6C14;&#x538B;</span><span class="info-value" id="pressure">-- hPa</span></div>
-        <div class="info-item"><span class="info-label">&#x7D2B;&#x5916;&#x7EBF;</span><span class="info-value" id="uvIndex">--</span></div>
+        <div class="info-item"><span class="info-label">体感温度</span><span class="info-value" id="feelsLike">--°C</span></div>
+        <div class="info-item"><span class="info-label">湿度</span><span class="info-value" id="humidity">--%</span></div>
+        <div class="info-item"><span class="info-label">风速</span><span class="info-value" id="windSpeed">-- km/h</span></div>
+        <div class="info-item"><span class="info-label">能见度</span><span class="info-value" id="visibility">-- km</span></div>
+        <div class="info-item"><span class="info-label">气压</span><span class="info-value" id="pressure">-- hPa</span></div>
+        <div class="info-item"><span class="info-label">紫外线</span><span class="info-value" id="uvIndex">--</span></div>
       </div>
     </div>
   </div>
-
-  <footer class="footer">
-    <a href="/chat" class="admin-link" title="AI 对话">聊</a>
-    <a href="/admin/login" class="admin-link" style="margin-top:8px;">管</a>
-  </footer>
 
   <!-- 作品详情弹窗 -->
   <div class="modal" id="workDetailModal">
@@ -228,10 +297,11 @@
   </script>
 
   <script>
+    // 头像弹窗
     (function() {
-      const avatarWrap = document.getElementById('avatarWrap');
-      const modal = document.getElementById('avatarModal');
-      const closeBtn = document.getElementById('modalClose');
+      var avatarWrap = document.getElementById('avatarWrap');
+      var modal = document.getElementById('avatarModal');
+      var closeBtn = document.getElementById('modalClose');
 
       avatarWrap.addEventListener('click', function() {
         modal.classList.add('active');
@@ -259,27 +329,12 @@
   </script>
 
   <script>
+    // 主题切换
     (function() {
-      const nav = document.getElementById('topNav');
-      let lastScrollY = window.scrollY;
-      window.addEventListener('scroll', function() {
-        const currentScrollY = window.scrollY;
-        if (currentScrollY > lastScrollY && currentScrollY > 60) {
-          nav.classList.add('hidden');
-        } else {
-          nav.classList.remove('hidden');
-        }
-        lastScrollY = currentScrollY;
-      });
-    })();
-  </script>
-
-  <script>
-    (function() {
-      const html = document.documentElement;
-      const toggle = document.getElementById('themeToggle');
-      const icon = document.getElementById('themeIcon');
-      const storedTheme = localStorage.getItem('linktree-theme') || 'auto';
+      var html = document.documentElement;
+      var toggle = document.getElementById('themeToggle');
+      var iconContainer = document.getElementById('themeIcon');
+      var storedTheme = localStorage.getItem('linktree-theme') || 'auto';
 
       function getSystemTheme() {
         return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
@@ -294,7 +349,11 @@
 
       function applyTheme(theme) {
         html.setAttribute('data-theme', theme);
-        icon.textContent = theme === 'dark' ? '\u2600\uFE0F' : '\uD83C\uDF19';
+        if (theme === 'dark') {
+          iconContainer.classList.add('is-dark');
+        } else {
+          iconContainer.classList.remove('is-dark');
+        }
         localStorage.setItem('linktree-theme', theme);
         document.body.style.animation = 'none';
         document.body.offsetHeight;
@@ -304,8 +363,8 @@
       applyTheme(getEffectiveTheme());
 
       toggle.addEventListener('click', function() {
-        const current = html.getAttribute('data-theme');
-        const next = current === 'dark' ? 'light' : 'dark';
+        var current = html.getAttribute('data-theme');
+        var next = current === 'dark' ? 'light' : 'dark';
         applyTheme(next);
       });
 
@@ -318,35 +377,37 @@
   </script>
 
   <script>
+    // 3D 倾斜效果 - 链接项
     (function() {
-      const buttons = document.querySelectorAll('.link-btn');
-      buttons.forEach(function(btn) {
-        btn.addEventListener('mousemove', function(e) {
-          btn.style.transition = 'none';
-          var rect = btn.getBoundingClientRect();
+      var items = document.querySelectorAll('.link-item');
+      items.forEach(function(item) {
+        item.addEventListener('mousemove', function(e) {
+          item.style.transition = 'none';
+          var rect = item.getBoundingClientRect();
           var x = e.clientX - rect.left;
           var y = e.clientY - rect.top;
           var centerX = rect.width / 2;
           var centerY = rect.height / 2;
           var rotateX = (y - centerY) / 10;
           var rotateY = (centerX - x) / 10;
-          btn.style.transform = 'perspective(1000px) rotateX(' + rotateX + 'deg) rotateY(' + rotateY + 'deg) scale(1.02)';
+          item.style.transform = 'perspective(1000px) rotateX(' + rotateX + 'deg) rotateY(' + rotateY + 'deg) scale(1.02)';
         });
-        btn.addEventListener('mouseleave', function() {
-          btn.style.transition = '';
-          btn.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
+        item.addEventListener('mouseleave', function() {
+          item.style.transition = '';
+          item.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
         });
-        btn.addEventListener('mousedown', function() {
-          btn.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(0.98)';
+        item.addEventListener('mousedown', function() {
+          item.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(0.98)';
         });
-        btn.addEventListener('mouseup', function() {
-          btn.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
+        item.addEventListener('mouseup', function() {
+          item.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
         });
       });
     })();
   </script>
 
   <script>
+    // 时钟组件
     (function() {
       var timeEl = document.getElementById('clockTime');
       var dateEl = document.getElementById('clockDate');
@@ -361,7 +422,7 @@
 
       function updateClock() {
         var now = new Date();
-        timeEl.textContent = pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+        timeEl.textContent = pad(now.getHours()) + ':' + pad(now.getMinutes());
         dateEl.textContent = now.getFullYear() + '/' + pad(now.getMonth() + 1) + '/' + pad(now.getDate());
       }
 
@@ -442,7 +503,7 @@
         ctx.fill();
 
         clockDigital.textContent = pad(now.getHours()) + ':' + pad(minutes) + ':' + pad(seconds);
-        clockDateDetail.textContent = now.getFullYear() + '\u5E74' + (now.getMonth()+1) + '\u6708' + now.getDate() + '\u65E5 ' + ['\u661F\u671F\u65E5','\u661F\u671F\u4E00','\u661F\u671F\u4E8C','\u661F\u671F\u4E09','\u661F\u671F\u56DB','\u661F\u671F\u4E94','\u661F\u671F\u516D'][now.getDay()];
+        clockDateDetail.textContent = now.getFullYear() + '年' + (now.getMonth()+1) + '月' + now.getDate() + '日 ' + ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'][now.getDay()];
       }
 
       function startClockAnimation() {
@@ -486,6 +547,7 @@
   </script>
 
   <script>
+    // 日历组件
     (function() {
       var dayEl = document.getElementById('calendarDay');
       var monthEl = document.getElementById('calendarMonth');
@@ -498,20 +560,20 @@
       var calNext = document.getElementById('calNext');
       var calendarGrid = document.getElementById('calendarGrid');
 
-      var weekdays = ['\u661F\u671F\u65E5', '\u661F\u671F\u4E00', '\u661F\u671F\u4E8C', '\u661F\u671F\u4E09', '\u661F\u671F\u56DB', '\u661F\u671F\u4E94', '\u661F\u671F\u516D'];
+      var weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
       var calYear, calMonth;
 
       function updateCalendar() {
         var now = new Date();
         dayEl.textContent = now.getDate();
-        monthEl.textContent = (now.getMonth() + 1) + '\u6708';
+        monthEl.textContent = (now.getMonth() + 1) + '月';
         weekdayEl.textContent = weekdays[now.getDay()];
         calYear = now.getFullYear();
         calMonth = now.getMonth();
       }
 
       function generateCalendarGrid(year, month) {
-        calTitle.textContent = year + '\u5E74' + (month + 1) + '\u6708';
+        calTitle.textContent = year + '年' + (month + 1) + '月';
         calendarGrid.innerHTML = '';
         var firstDay = new Date(year, month, 1).getDay();
         var daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -570,18 +632,18 @@
   </script>
 
   <script>
+    // 天气组件
     (function() {
       var tempEl = document.getElementById('weatherTemp');
       var descEl = document.getElementById('weatherDesc');
-      var iconEl = document.getElementById('weatherIcon');
       var weatherWidget = document.getElementById('weatherWidget');
       var weatherModal = document.getElementById('weatherModal');
       var weatherModalClose = document.getElementById('weatherModalClose');
 
       var weatherIcons = {
-        '\u6674': '\u2600\uFE0F', '\u591A\u4E91': '\u26C5', '\u9634': '\u2601\uFE0F',
-        '\u5C0F\u96E8': '\uD83C\uDF26\uFE0F', '\u4E2D\u96E8': '\uD83C\uDF27\uFE0F', '\u5927\u96E8': '\uD83C\uDF27\uFE0F',
-        '\u96F7\u9635\u96E8': '\u26C8\uFE0F', '\u96EA': '\uD83C\uDF28\uFE0F', '\u96FE': '\uD83C\uDF2B\uFE0F'
+        '晴': '\u2600\uFE0F', '多云': '\u26C5', '阴': '\u2601\uFE0F',
+        '小雨': '\uD83C\uDF26\uFE0F', '中雨': '\uD83C\uDF27\uFE0F', '大雨': '\uD83C\uDF27\uFE0F',
+        '雷阵雨': '\u26C8\uFE0F', '雪': '\uD83C\uDF28\uFE0F', '雾': '\uD83C\uDF2B\uFE0F'
       };
 
       function getWeatherIcon(desc) {
@@ -602,12 +664,11 @@
           var desc = current.lang_zh && current.lang_zh[0] ? current.lang_zh[0].value : current.weatherDesc[0].value;
 
           weatherData = current;
-          tempEl.textContent = temp + '\u00B0C';
+          tempEl.textContent = temp + '°C';
           descEl.textContent = desc;
-          iconEl.textContent = getWeatherIcon(desc);
         } catch (e) {
-          tempEl.textContent = '--\u00B0C';
-          descEl.textContent = '\u83B7\u53D6\u5931\u8D25';
+          tempEl.textContent = '--°C';
+          descEl.textContent = '获取失败';
         }
       }
 
@@ -615,9 +676,9 @@
         if (!weatherData) return;
         var desc = weatherData.lang_zh && weatherData.lang_zh[0] ? weatherData.lang_zh[0].value : weatherData.weatherDesc[0].value;
         document.getElementById('weatherDetailIcon').textContent = getWeatherIcon(desc);
-        document.getElementById('weatherDetailTemp').textContent = weatherData.temp_C + '\u00B0C';
+        document.getElementById('weatherDetailTemp').textContent = weatherData.temp_C + '°C';
         document.getElementById('weatherDetailDesc').textContent = desc;
-        document.getElementById('feelsLike').textContent = weatherData.FeelsLikeC + '\u00B0C';
+        document.getElementById('feelsLike').textContent = weatherData.FeelsLikeC + '°C';
         document.getElementById('humidity').textContent = weatherData.humidity + '%';
         document.getElementById('windSpeed').textContent = weatherData.windspeedKmph + ' km/h';
         document.getElementById('visibility').textContent = weatherData.visibility + ' km';
