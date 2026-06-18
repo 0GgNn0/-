@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"linktree/models"
 
@@ -156,6 +157,9 @@ func GetSettings(w http.ResponseWriter, r *http.Request) {
 		"bio":             models.GetSettingOrDefault("bio", ""),
 		"avatar_data_url": models.GetSettingOrDefault("avatar_data_url", ""),
 		"theme":           models.GetSettingOrDefault("theme", "auto"),
+		"ai_base_url":     models.GetAIBaseURL(),
+		"ai_api_key":      models.MaskAPIKey(models.GetAIAPIKey()),
+		"ai_model":        models.GetAIModel(),
 	}
 	writeJSON(w, data)
 }
@@ -166,6 +170,9 @@ func UpdateSettings(w http.ResponseWriter, r *http.Request) {
 		Bio         *string `json:"bio"`
 		AvatarURL   *string `json:"avatar_data_url"`
 		NewPassword *string `json:"new_password"`
+		AIBaseURL   *string `json:"ai_base_url"`
+		AIAPIKey    *string `json:"ai_api_key"`
+		AIModel     *string `json:"ai_model"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -187,6 +194,18 @@ func UpdateSettings(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, map[string]interface{}{"ok": false, "message": "密码修改失败: " + err.Error()})
 			return
 		}
+	}
+	if body.AIBaseURL != nil {
+		models.SetSetting("ai_base_url", *body.AIBaseURL)
+	}
+	if body.AIAPIKey != nil {
+		// Skip if masked placeholder
+		if *body.AIAPIKey != "" && !strings.Contains(*body.AIAPIKey, "****") {
+			models.SetSetting("ai_api_key", *body.AIAPIKey)
+		}
+	}
+	if body.AIModel != nil {
+		models.SetSetting("ai_model", *body.AIModel)
 	}
 
 	writeJSON(w, map[string]interface{}{"ok": true})

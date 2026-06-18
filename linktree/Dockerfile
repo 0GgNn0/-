@@ -18,6 +18,8 @@ COPY --from=builder /app/linktree .
 COPY --from=builder /app/templates ./templates
 COPY --from=builder /app/static ./static
 
+RUN mkdir -p /app/data/uploads
+
 EXPOSE 8080
 VOLUME ["/app/data"]
 

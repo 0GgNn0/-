@@ -74,3 +74,26 @@ func generateRandomPassword(length int) string {
 	}
 	return string(result)
 }
+
+func MaskAPIKey(key string) string {
+	if key == "" {
+		return ""
+	}
+	if len(key) <= 8 {
+		return "****"
+	}
+	return key[:4] + "****" + key[len(key)-4:]
+}
+
+func GetAIBaseURL() string {
+	return GetSettingOrDefault("ai_base_url", "https://api.deepseek.com")
+}
+
+func GetAIAPIKey() string {
+	val, _ := GetSetting("ai_api_key")
+	return val
+}
+
+func GetAIModel() string {
+	return GetSettingOrDefault("ai_model", "deepseek-v4-flash")
+}

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 对话</title>
+  <link rel="icon" type="image/jpeg" href="/static/avatar.jpg">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body data-theme="light" class="chat-page">
+  <div class="chat-layout">
+    <!-- 侧边栏 -->
+    <aside class="chat-sidebar" id="chatSidebar">
+      <div class="chat-sidebar-header">
+        <a href="/" class="chat-back-btn" title="返回首页">←</a>
+        <button class="chat-new-btn" onclick="newSession()">+ 新对话</button>
+      </div>
+      <div class="chat-sessions" id="chatSessions">
+        <div style="color:var(--text-secondary); font-size:13px; text-align:center; padding:20px;">加载中...</div>
+      </div>
+    </aside>
+
+    <!-- 主对话区 -->
+    <main class="chat-main">
+      <div class="chat-header">
+        <button class="chat-menu-btn" id="menuBtn" onclick="toggleSidebar()">☰</button>
+        <span class="chat-header-title" id="chatTitle">AI 对话</span>
+        <div style="flex:1;"></div>
+        <select id="chatModelSelect" class="chat-model-select" onchange="changeModel()">
+        </select>
+      </div>
+
+      <div class="chat-messages" id="chatMessages">
+        <div class="chat-welcome">
+          <img src="/static/avatar.jpg" alt="AI" class="chat-welcome-avatar">
+          <h2>AI 助手</h2>
+          <p>有任何问题，尽管问我</p>
+        </div>
+      </div>
+
+      <div class="chat-input-area">
+        <div class="chat-input-wrap">
+          <textarea id="chatInput" placeholder="输入消息..." rows="1" maxlength="4000"></textarea>
+          <button class="chat-send-btn" id="sendBtn" onclick="sendMessage()" disabled>
+            <span class="send-icon">↑</span>
+          </button>
+        </div>
+        <div class="chat-input-hint">AI 可能会犯错，请核实重要信息</div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    var sessions = [];
+    var currentSessionID = 0;
+    var isStreaming = false;
+    var currentModel = '';
+
+    // ==================== 通用 ====================
+    function showToast(msg) {
+      var t = document.createElement('div');
+      t.className = 'chat-toast';
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(function() { t.classList.add('show'); }, 10);
+      setTimeout(function() { t.classList.remove('show'); setTimeout(function() { t.remove(); }, 300); }, 2500);
+    }
+
+    function apiCall(url, method, body) {
+      var opts = { method: method, headers: {} };
+      if (body) {
+        opts.headers['Content-Type'] = 'application/json';
+        opts.body = JSON.stringify(body);
+      }
+      return fetch(url, opts).then(function(r) {
+        if (r.status === 401) { window.location.href = '/admin/login'; throw new Error('Unauthorized'); }
+        return r.json();
+      });
+    }
+
+    function esc(str) {
+      var div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function renderMarkdown(text) {
+      var html = esc(text);
+      // Code blocks
+      html = html.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code class="lang-$1">$2</code></pre>');
+      // Inline code
+      html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+      // Bold
+      html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      // Newlines
+      html = html.replace(/\n/g, '<br>');
+      return html;
+    }
+
+    // ==================== 侧边栏 ====================
+    function toggleSidebar() {
+      document.getElementById('chatSidebar').classList.toggle('open');
+    }
+
+    function loadSessions() {
+      apiCall('/api/chat/sessions', 'GET').then(function(data) {
+        sessions = data;
+        renderSessions();
+      });
+    }
+
+    function renderSessions() {
+      var el = document.getElementById('chatSessions');
+      if (sessions.length === 0) {
+        el.innerHTML = '<div style="color:var(--text-secondary); font-size:13px; text-align:center; padding:20px;">暂无对话</div>';
+        return;
+      }
+      var html = '';
+      sessions.forEach(function(s) {
+        var active = s.id === currentSessionID ? ' active' : '';
+        html += '<div class="chat-session-item' + active + '" onclick="selectSession(' + s.id + ')">' +
+          '<span class="session-title">' + esc(s.title) + '</span>' +
+          '<button class="session-del" onclick="event.stopPropagation(); deleteSession(' + s.id + ')" title="删除">&times;</button>' +
+        '</div>';
+      });
+      el.innerHTML = html;
+    }
+
+    // ==================== 会话管理 ====================
+    function newSession() {
+      currentSessionID = 0;
+      document.getElementById('chatTitle').textContent = 'AI 对话';
+      document.getElementById('chatMessages').innerHTML =
+        '<div class="chat-welcome"><div class="chat-welcome-icon">🤖</div><h2>AI 助手</h2><p>有任何问题，尽管问我</p></div>';
+      renderSessions();
+      document.getElementById('chatSidebar').classList.remove('open');
+    }
+
+    function selectSession(id) {
+      currentSessionID = id;
+      var session = sessions.find(function(s) { return s.id === id; });
+      if (session) {
+        document.getElementById('chatTitle').textContent = session.title;
+      }
+      renderSessions();
+      loadMessages(id);
+      document.getElementById('chatSidebar').classList.remove('open');
+    }
+
+    function deleteSession(id) {
+      if (!confirm('确定删除此对话？')) return;
+      apiCall('/api/chat/sessions/' + id, 'DELETE').then(function() {
+        if (currentSessionID === id) newSession();
+        loadSessions();
+      });
+    }
+
+    function loadMessages(sessionID) {
+      apiCall('/api/chat/sessions/' + sessionID + '/messages', 'GET').then(function(msgs) {
+        var el = document.getElementById('chatMessages');
+        if (msgs.length === 0) {
+          el.innerHTML = '<div class="chat-welcome"><div class="chat-welcome-icon">🤖</div><h2>AI 助手</h2><p>有任何问题，尽管问我</p></div>';
+          return;
+        }
+        el.innerHTML = '';
+        msgs.forEach(function(m) {
+          appendMessage(m.role, m.content);
+        });
+        scrollToBottom();
+      });
+    }
+
+    // ==================== 消息渲染 ====================
+    function appendMessage(role, content) {
+      var el = document.getElementById('chatMessages');
+      // Remove welcome if present
+      var welcome = el.querySelector('.chat-welcome');
+      if (welcome) welcome.remove();
+
+      var div = document.createElement('div');
+      div.className = 'chat-msg chat-msg-' + role;
+
+      if (role === 'user') {
+        div.innerHTML = '<div class="chat-msg-content">' + esc(content) + '</div>';
+      } else {
+        div.innerHTML = '<div class="chat-msg-avatar"><img src="/static/avatar.jpg" alt="AI"></div><div class="chat-msg-content">' + renderMarkdown(content) + '</div>';
+      }
+      el.appendChild(div);
+    }
+
+    function appendStreamingMessage() {
+      var el = document.getElementById('chatMessages');
+      var welcome = el.querySelector('.chat-welcome');
+      if (welcome) welcome.remove();
+
+      var div = document.createElement('div');
+      div.className = 'chat-msg chat-msg-assistant';
+      div.id = 'streamingMsg';
+      div.innerHTML = '<div class="chat-msg-avatar"><img src="/static/avatar.jpg" alt="AI"></div><div class="chat-msg-content"><span class="chat-cursor">▊</span></div>';
+      el.appendChild(div);
+      return div;
+    }
+
+    function appendError(msg) {
+      var el = document.getElementById('chatMessages');
+      var welcome = el.querySelector('.chat-welcome');
+      if (welcome) welcome.remove();
+
+      var div = document.createElement('div');
+      div.className = 'chat-msg chat-msg-error';
+      div.innerHTML = '<div class="chat-msg-avatar" style="background:rgba(231,76,60,0.1);">⚠️</div><div class="chat-msg-content">' + esc(msg) + '</div>';
+      el.appendChild(div);
+      scrollToBottom();
+    }
+
+    function scrollToBottom() {
+      var el = document.getElementById('chatMessages');
+      el.scrollTop = el.scrollHeight;
+    }
+
+    // ==================== 发送消息 ====================
+    function sendMessage() {
+      var input = document.getElementById('chatInput');
+      var content = input.value.trim();
+      if (!content || isStreaming) return;
+
+      appendMessage('user', content);
+      input.value = '';
+      input.style.height = 'auto';
+      scrollToBottom();
+
+      isStreaming = true;
+      document.getElementById('sendBtn').disabled = true;
+
+      var streamDiv = appendStreamingMessage();
+      var fullContent = '';
+
+      fetch('/api/chat/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: currentSessionID, content: content })
+      }).then(function(response) {
+        var reader = response.body.getReader();
+        var decoder = new TextDecoder();
+        var buffer = '';
+
+        function read() {
+          return reader.read().then(function(result) {
+            if (result.done) {
+              isStreaming = false;
+              document.getElementById('sendBtn').disabled = false;
+              var cursor = streamDiv.querySelector('.chat-cursor');
+              if (cursor) cursor.remove();
+              loadSessions();
+              return;
+            }
+
+            buffer += decoder.decode(result.value, { stream: true });
+            var lines = buffer.split('\n');
+            buffer = lines.pop();
+
+            lines.forEach(function(line) {
+              if (!line.startsWith('data: ')) return;
+              var dataStr = line.substring(6);
+              try {
+                var data = JSON.parse(dataStr);
+                if (data.type === 'session_created') {
+                  currentSessionID = data.session.id;
+                  document.getElementById('chatTitle').textContent = data.session.title;
+                } else if (data.type === 'delta') {
+                  fullContent += data.content;
+                  var contentEl = streamDiv.querySelector('.chat-msg-content');
+                  contentEl.innerHTML = renderMarkdown(fullContent) + '<span class="chat-cursor">▊</span>';
+                  scrollToBottom();
+                } else if (data.type === 'error') {
+                  var cursor = streamDiv.querySelector('.chat-cursor');
+                  if (cursor) cursor.remove();
+                  appendError(data.message);
+                  isStreaming = false;
+                  document.getElementById('sendBtn').disabled = false;
+                } else if (data.type === 'done') {
+                  var cursor = streamDiv.querySelector('.chat-cursor');
+                  if (cursor) cursor.remove();
+                  isStreaming = false;
+                  document.getElementById('sendBtn').disabled = false;
+                }
+              } catch (e) {}
+            });
+
+            return read();
+          });
+        }
+
+        return read();
+      }).catch(function(err) {
+        var cursor = streamDiv.querySelector('.chat-cursor');
+        if (cursor) cursor.remove();
+        appendError('请求失败: ' + err.message);
+        isStreaming = false;
+        document.getElementById('sendBtn').disabled = false;
+      });
+    }
+
+    // ==================== 输入处理 ====================
+    (function() {
+      var input = document.getElementById('chatInput');
+      input.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 160) + 'px';
+        document.getElementById('sendBtn').disabled = !this.value.trim();
+      });
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+    })();
+
+    function changeModel() {
+      currentModel = document.getElementById('chatModelSelect').value;
+    }
+
+    // ==================== 初始化 ====================
+    function initChat() {
+      apiCall('/api/settings', 'GET').then(function(data) {
+        var model = data.ai_model || 'deepseek-v4-flash';
+        currentModel = model;
+        var select = document.getElementById('chatModelSelect');
+        var models = ['deepseek-v4-flash', 'deepseek-chat', 'deepseek-coder', 'gpt-4o', 'gpt-4o-mini', 'gpt-3.5-turbo'];
+        select.innerHTML = '';
+        models.forEach(function(m) {
+          var opt = document.createElement('option');
+          opt.value = m;
+          opt.textContent = m;
+          if (m === model) opt.selected = true;
+          select.appendChild(opt);
+        });
+        if (models.indexOf(model) === -1) {
+          var opt = document.createElement('option');
+          opt.value = model;
+          opt.textContent = model + ' (自定义)';
+          opt.selected = true;
+          select.appendChild(opt);
+        }
+      });
+      loadSessions();
+    }
+
+    initChat();
+  </script>
+</body>
+</html>

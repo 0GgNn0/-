@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>管理后台 - LinkTree</title>
+  <link rel="icon" type="image/jpeg" href="/static/avatar.jpg">
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body data-theme="light">
@@ -20,66 +21,274 @@
       </div>
     </div>
 
-    <!-- 个人信息 -->
-    <div class="section">
-      <h2>个人信息</h2>
-      <div class="settings-form">
-        <div class="form-group">
-          <label>显示名称</label>
-          <input type="text" id="settingName" placeholder="你的名字">
+    <!-- Tab 导航 -->
+    <div class="admin-tabs">
+      <button class="admin-tab active" data-tab="links" onclick="switchTab('links')">链接</button>
+      <button class="admin-tab" data-tab="files" onclick="switchTab('files')">文件</button>
+      <button class="admin-tab" data-tab="works" onclick="switchTab('works')">作品</button>
+      <button class="admin-tab" data-tab="chats" onclick="switchTab('chats')">对话</button>
+      <button class="admin-tab" data-tab="settings" onclick="switchTab('settings')">设置</button>
+    </div>
+
+    <!-- ==================== 链接 Tab ==================== -->
+    <div class="tab-content active" id="tab-links">
+      <div class="section">
+        <h2>链接管理</h2>
+        <div class="inline-form">
+          <input type="text" id="newTitle" placeholder="链接名称" maxlength="30">
+          <input type="url" id="newURL" placeholder="https://..." style="flex:2;">
+          <button class="btn btn-primary btn-sm" onclick="addLink()">+ 添加</button>
         </div>
-        <div class="form-group">
-          <label>简介 / 签名</label>
-          <textarea id="settingBio" placeholder="一句话介绍自己"></textarea>
-        </div>
-        <div class="form-group">
-          <label>头像 (图片URL 或 Data URL)</label>
-          <input type="text" id="settingAvatar" placeholder="https://example.com/avatar.jpg">
-        </div>
-        <button class="btn btn-primary" onclick="saveSettings()" style="width:auto; padding:0 24px;">保存设置</button>
+        <table class="link-table">
+          <thead>
+            <tr>
+              <th style="width:30%;">名称</th>
+              <th style="width:45%;">URL</th>
+              <th style="width:10%;">排序</th>
+              <th style="width:15%;">操作</th>
+            </tr>
+          </thead>
+          <tbody id="linksBody">
+            <tr><td colspan="4" style="text-align:center; color:var(--text-secondary);">加载中...</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
-    <!-- 链接管理 -->
-    <div class="section">
-      <h2>链接管理</h2>
-
-      <!-- 添加链接 -->
-      <div class="inline-form">
-        <input type="text" id="newTitle" placeholder="链接名称" maxlength="30">
-        <input type="url" id="newURL" placeholder="https://..." style="flex:2;">
-        <button class="btn btn-primary btn-sm" onclick="addLink()">+ 添加</button>
+    <!-- ==================== 文件 Tab ==================== -->
+    <div class="tab-content" id="tab-files">
+      <div class="section">
+        <h2>文件管理</h2>
+        <div class="inline-form">
+          <select id="fileCategoryFilter" onchange="loadFiles()" style="height:36px; padding:0 12px; border-radius:8px; border:1px solid var(--input-border); background:var(--input-bg); color:var(--text-primary); font-size:14px;">
+            <option value="">全部分类</option>
+          </select>
+          <button class="btn btn-sm" onclick="showNewCategoryModal('file')">+ 新建分类</button>
+          <div style="flex:1;"></div>
+          <label class="btn btn-primary btn-sm" style="cursor:pointer;">
+            📎 上传文件
+            <input type="file" id="fileUploadInput" multiple style="display:none;" onchange="uploadFiles(this.files)">
+          </label>
+        </div>
+        <table class="link-table">
+          <thead>
+            <tr>
+              <th style="width:35%;">文件名</th>
+              <th style="width:15%;">大小</th>
+              <th style="width:15%;">分类</th>
+              <th style="width:10%;">下载</th>
+              <th style="width:25%;">操作</th>
+            </tr>
+          </thead>
+          <tbody id="filesBody">
+            <tr><td colspan="5" style="text-align:center; color:var(--text-secondary);">加载中...</td></tr>
+          </tbody>
+        </table>
       </div>
-
-      <!-- 链接列表 -->
-      <table class="link-table">
-        <thead>
-          <tr>
-            <th style="width:30%;">名称</th>
-            <th style="width:45%;">URL</th>
-            <th style="width:10%;">排序</th>
-            <th style="width:15%;">操作</th>
-          </tr>
-        </thead>
-        <tbody id="linksBody">
-          <tr><td colspan="4" style="text-align:center; color:var(--text-secondary);">加载中...</td></tr>
-        </tbody>
-      </table>
     </div>
 
-    <!-- 修改密码 -->
-    <div class="section">
-      <h2>修改密码</h2>
-      <div class="settings-form">
-        <div class="form-group">
-          <label>新密码</label>
-          <input type="password" id="newPassword" placeholder="输入新密码">
+    <!-- ==================== 作品 Tab ==================== -->
+    <div class="tab-content" id="tab-works">
+      <div class="section">
+        <h2>作品管理</h2>
+        <div class="inline-form">
+          <select id="workCategoryFilter" onchange="loadWorks()" style="height:36px; padding:0 12px; border-radius:8px; border:1px solid var(--input-border); background:var(--input-bg); color:var(--text-primary); font-size:14px;">
+            <option value="">全部分类</option>
+          </select>
+          <button class="btn btn-sm" onclick="showNewCategoryModal('work')">+ 新建分类</button>
+          <div style="flex:1;"></div>
+          <button class="btn btn-primary btn-sm" onclick="showNewWorkModal()">+ 新建作品</button>
         </div>
-        <div class="form-group">
-          <label>确认密码</label>
-          <input type="password" id="confirmPassword" placeholder="再次输入新密码">
+        <div id="worksGrid" class="works-grid">
+          <div style="text-align:center; color:var(--text-secondary); padding:40px;">加载中...</div>
         </div>
-        <button class="btn btn-danger btn-sm" onclick="changePassword()" style="width:auto; padding:0 24px;">修改密码</button>
+      </div>
+    </div>
+
+    <!-- ==================== 对话 Tab ==================== -->
+    <div class="tab-content" id="tab-chats">
+      <div class="section">
+        <h2>对话管理</h2>
+        <div class="inline-form">
+          <div style="flex:1;"></div>
+          <a href="/chat" class="btn btn-primary btn-sm" style="text-decoration:none; display:inline-flex; align-items:center;">+ 新对话</a>
+        </div>
+        <table class="link-table">
+          <thead>
+            <tr>
+              <th style="width:35%;">标题</th>
+              <th style="width:15%;">模型</th>
+              <th style="width:10%;">消息数</th>
+              <th style="width:20%;">更新时间</th>
+              <th style="width:20%;">操作</th>
+            </tr>
+          </thead>
+          <tbody id="chatsBody">
+            <tr><td colspan="5" style="text-align:center; color:var(--text-secondary);">加载中...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== 设置 Tab ==================== -->
+    <div class="tab-content" id="tab-settings">
+      <div class="section">
+        <h2>个人信息</h2>
+        <div class="settings-form">
+          <div class="form-group">
+            <label>显示名称</label>
+            <input type="text" id="settingName" placeholder="你的名字">
+          </div>
+          <div class="form-group">
+            <label>简介 / 签名</label>
+            <textarea id="settingBio" placeholder="一句话介绍自己"></textarea>
+          </div>
+          <div class="form-group">
+            <label>头像 (图片URL 或 Data URL)</label>
+            <input type="text" id="settingAvatar" placeholder="https://example.com/avatar.jpg">
+          </div>
+          <button class="btn btn-primary" onclick="saveSettings()" style="width:auto; padding:0 24px;">保存设置</button>
+        </div>
+      </div>
+      <div class="section">
+        <h2>修改密码</h2>
+        <div class="settings-form">
+          <div class="form-group">
+            <label>新密码</label>
+            <input type="password" id="newPassword" placeholder="输入新密码">
+          </div>
+          <div class="form-group">
+            <label>确认密码</label>
+            <input type="password" id="confirmPassword" placeholder="再次输入新密码">
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="changePassword()" style="width:auto; padding:0 24px;">修改密码</button>
+        </div>
+      </div>
+      <div class="section">
+        <h2>AI 对话设置</h2>
+        <div class="settings-form">
+          <div class="form-group">
+            <label>API Base URL</label>
+            <input type="text" id="settingAIBaseURL" placeholder="https://api.deepseek.com">
+          </div>
+          <div class="form-group">
+            <label>API Key</label>
+            <input type="text" id="settingAIAPIKey" placeholder="sk-...">
+          </div>
+          <div class="form-group">
+            <label>模型名称</label>
+            <input type="text" id="settingAIModel" placeholder="deepseek-v4-flash">
+          </div>
+          <button class="btn btn-primary" onclick="saveAISettings()" style="width:auto; padding:0 24px;">保存 AI 设置</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 新建分类弹窗 ==================== -->
+  <div class="modal" id="categoryModal">
+    <div class="modal-content" style="width:360px; padding:32px;">
+      <button class="modal-close" onclick="closeModal('categoryModal')">&times;</button>
+      <h3 style="margin-bottom:20px; color:var(--text-primary);">新建分类</h3>
+      <div class="form-group">
+        <label>分类名称</label>
+        <input type="text" id="categoryName" placeholder="输入分类名称">
+      </div>
+      <input type="hidden" id="categoryType" value="file">
+      <button class="btn btn-primary" onclick="createCategory()" style="width:auto; padding:0 24px;">创建</button>
+    </div>
+  </div>
+
+  <!-- ==================== 新建作品弹窗 ==================== -->
+  <div class="modal" id="workModal">
+    <div class="modal-content" style="width:480px; padding:32px;">
+      <button class="modal-close" onclick="closeModal('workModal')">&times;</button>
+      <h3 style="margin-bottom:20px; color:var(--text-primary);">新建作品</h3>
+      <div class="form-group">
+        <label>作品标题</label>
+        <input type="text" id="workTitle" placeholder="输入作品标题">
+      </div>
+      <div class="form-group">
+        <label>描述</label>
+        <textarea id="workDesc" placeholder="简短描述这个作品" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--input-border); background:var(--input-bg); color:var(--text-primary); font-size:15px; outline:none; resize:vertical; min-height:60px; font-family:inherit;"></textarea>
+      </div>
+      <div class="form-group">
+        <label>封面图 URL</label>
+        <input type="text" id="workCover" placeholder="https://example.com/cover.jpg">
+      </div>
+      <div class="form-group">
+        <label>内容类型</label>
+        <select id="workContentType" style="width:100%; height:46px; padding:0 16px; border-radius:12px; border:1px solid var(--input-border); background:var(--input-bg); color:var(--text-primary); font-size:15px;">
+          <option value="image">图片</option>
+          <option value="video">视频</option>
+          <option value="mixed">混合</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>外链 (可选)</label>
+        <input type="text" id="workExternal" placeholder="https://...">
+      </div>
+      <div class="form-group">
+        <label>分类</label>
+        <select id="workCategory" style="width:100%; height:46px; padding:0 16px; border-radius:12px; border:1px solid var(--input-border); background:var(--input-bg); color:var(--text-primary); font-size:15px;">
+          <option value="">无分类</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="createWork()" style="width:auto; padding:0 24px;">创建作品</button>
+    </div>
+  </div>
+
+  <!-- ==================== 编辑作品弹窗 ==================== -->
+  <div class="modal" id="workEditModal">
+    <div class="modal-content" style="width:520px; padding:32px; max-height:90vh; overflow-y:auto;">
+      <button class="modal-close" onclick="closeModal('workEditModal')">&times;</button>
+      <h3 style="margin-bottom:20px; color:var(--text-primary);">编辑作品</h3>
+      <input type="hidden" id="editWorkId">
+      <div class="form-group">
+        <label>作品标题</label>
+        <input type="text" id="editWorkTitle">
+      </div>
+      <div class="form-group">
+        <label>描述</label>
+        <textarea id="editWorkDesc" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--input-border); background:var(--input-bg); color:var(--text-primary); font-size:15px; outline:none; resize:vertical; min-height:60px; font-family:inherit;"></textarea>
+      </div>
+      <div class="form-group">
+        <label>封面图 URL</label>
+        <input type="text" id="editWorkCover">
+      </div>
+      <div class="form-group">
+        <label>内容类型</label>
+        <select id="editWorkContentType" style="width:100%; height:46px; padding:0 16px; border-radius:12px; border:1px solid var(--input-border); background:var(--input-bg); color:var(--text-primary); font-size:15px;">
+          <option value="image">图片</option>
+          <option value="video">视频</option>
+          <option value="mixed">混合</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>外链 (可选)</label>
+        <input type="text" id="editWorkExternal">
+      </div>
+      <div class="form-group">
+        <label>分类</label>
+        <select id="editWorkCategory" style="width:100%; height:46px; padding:0 16px; border-radius:12px; border:1px solid var(--input-border); background:var(--input-bg); color:var(--text-primary); font-size:15px;">
+          <option value="">无分类</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>媒体列表</label>
+        <div id="editWorkMediaList" style="display:flex; flex-direction:column; gap:8px;"></div>
+        <div style="display:flex; gap:8px; margin-top:8px;">
+          <input type="text" id="newMediaUrl" placeholder="媒体URL" style="flex:1; height:36px; padding:0 12px; border-radius:8px; border:1px solid var(--input-border); background:var(--input-bg); color:var(--text-primary); font-size:14px;">
+          <select id="newMediaType" style="height:36px; padding:0 8px; border-radius:8px; border:1px solid var(--input-border); background:var(--input-bg); color:var(--text-primary); font-size:14px;">
+            <option value="image">图片</option>
+            <option value="video">视频</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="addMediaToWork()">添加</button>
+        </div>
+      </div>
+      <div style="display:flex; gap:10px; margin-top:20px;">
+        <button class="btn btn-primary" onclick="saveWorkEdit()" style="flex:1;">保存</button>
+        <button class="btn btn-danger" onclick="deleteWorkFromEdit()" style="flex:1;">删除作品</button>
       </div>
     </div>
   </div>
@@ -88,8 +297,13 @@
 
   <script>
     var linksData = [];
+    var filesData = [];
+    var worksData = [];
+    var fileCategories = [];
+    var workCategories = [];
+    var editingWorkMedia = [];
 
-    // 主题
+    // ==================== 主题 ====================
     (function() {
       var html = document.documentElement;
       var toggle = document.getElementById('themeToggle');
@@ -107,7 +321,7 @@
       });
     })();
 
-    // Toast
+    // ==================== 通用工具 ====================
     function showToast(msg) {
       var t = document.getElementById('toast');
       t.textContent = msg;
@@ -115,59 +329,57 @@
       setTimeout(function() { t.classList.remove('show'); }, 2500);
     }
 
-    // API 封装
     function api(url, method, body) {
-      var opts = {
-        method: method,
-        headers: { 'Content-Type': 'application/json' }
-      };
-      if (body) opts.body = JSON.stringify(body);
+      var opts = { method: method, headers: {} };
+      if (body) {
+        opts.headers['Content-Type'] = 'application/json';
+        opts.body = JSON.stringify(body);
+      }
       return fetch(url, opts).then(function(r) {
-        if (r.status === 401) {
-          window.location.href = '/admin/login';
-          throw new Error('Unauthorized');
-        }
+        if (r.status === 401) { window.location.href = '/admin/login'; throw new Error('Unauthorized'); }
         return r.json();
       });
     }
 
-    // 退出
+    function apiUpload(url, formData) {
+      return fetch(url, { method: 'POST', body: formData }).then(function(r) {
+        if (r.status === 401) { window.location.href = '/admin/login'; throw new Error('Unauthorized'); }
+        return r.json();
+      });
+    }
+
+    function esc(str) {
+      var div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function formatSize(bytes) {
+      if (bytes < 1024) return bytes + 'B';
+      if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + 'KB';
+      if (bytes < 1024*1024*1024) return (bytes/(1024*1024)).toFixed(1) + 'MB';
+      return (bytes/(1024*1024*1024)).toFixed(1) + 'GB';
+    }
+
     function logout() {
-      api('/api/auth/logout', 'POST').then(function() {
-        window.location.href = '/admin/login';
-      });
+      api('/api/auth/logout', 'POST').then(function() { window.location.href = '/admin/login'; });
     }
 
-    // 加载设置
-    function loadSettings() {
-      api('/api/settings', 'GET').then(function(data) {
-        document.getElementById('settingName').value = data.display_name || '';
-        document.getElementById('settingBio').value = data.bio || '';
-        document.getElementById('settingAvatar').value = data.avatar_data_url || '';
-      });
+    // ==================== Tab 切换 ====================
+    function switchTab(tabName) {
+      document.querySelectorAll('.admin-tab').forEach(function(t) { t.classList.remove('active'); });
+      document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
+      document.querySelector('[data-tab="'+tabName+'"]').classList.add('active');
+      document.getElementById('tab-'+tabName).classList.add('active');
     }
 
-    function saveSettings() {
-      var body = {
-        display_name: document.getElementById('settingName').value,
-        bio: document.getElementById('settingBio').value,
-        avatar_data_url: document.getElementById('settingAvatar').value
-      };
-      api('/api/settings', 'PUT', body).then(function(data) {
-        if (data.ok) {
-          showToast('设置已保存');
-        } else {
-          showToast('保存失败: ' + (data.message || ''));
-        }
-      });
-    }
+    // ==================== 弹窗控制 ====================
+    function openModal(id) { document.getElementById(id).classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
-    // 链接管理
+    // ==================== 链接管理 ====================
     function loadLinks() {
-      api('/api/links', 'GET').then(function(links) {
-        linksData = links;
-        renderLinks();
-      });
+      api('/api/links', 'GET').then(function(links) { linksData = links; renderLinks(); });
     }
 
     function renderLinks() {
@@ -181,24 +393,11 @@
         html += '<tr>' +
           '<td>' + esc(l.title) + '</td>' +
           '<td style="font-size:12px; word-break:break-all;">' + esc(l.url) + '</td>' +
-          '<td>' +
-            '<input type="number" value="' + l.sort_order + '" ' +
-            'style="width:60px; height:30px; border-radius:6px; border:1px solid var(--input-border); background:var(--input-bg); color:var(--text-primary); padding:0 6px; font-size:13px; text-align:center;" ' +
-            'onchange="updateSort(' + l.id + ', this.value)">' +
-          '</td>' +
-          '<td class="actions-cell">' +
-            '<button class="edit-btn" onclick="editLink(' + l.id + ')">编辑</button>' +
-            '<button class="del-btn" onclick="deleteLink(' + l.id + ')">删除</button>' +
-          '</td>' +
+          '<td><input type="number" value="' + l.sort_order + '" style="width:60px; height:30px; border-radius:6px; border:1px solid var(--input-border); background:var(--input-bg); color:var(--text-primary); padding:0 6px; font-size:13px; text-align:center;" onchange="updateSort(' + l.id + ', this.value)"></td>' +
+          '<td class="actions-cell"><button class="edit-btn" onclick="editLink(' + l.id + ')">编辑</button><button class="del-btn" onclick="deleteLink(' + l.id + ')">删除</button></td>' +
         '</tr>';
       });
       body.innerHTML = html;
-    }
-
-    function esc(str) {
-      var div = document.createElement('div');
-      div.textContent = str;
-      return div.innerHTML;
     }
 
     function addLink() {
@@ -206,19 +405,10 @@
       var urlEl = document.getElementById('newURL');
       var title = titleEl.value.trim();
       var url = urlEl.value.trim();
-      if (!title || !url) {
-        showToast('请填写链接名称和URL');
-        return;
-      }
+      if (!title || !url) { showToast('请填写链接名称和URL'); return; }
       api('/api/links', 'POST', { title: title, url: url }).then(function(data) {
-        if (data.ok) {
-          titleEl.value = '';
-          urlEl.value = '';
-          showToast('链接已添加');
-          loadLinks();
-        } else {
-          showToast('添加失败: ' + (data.message || ''));
-        }
+        if (data.ok) { titleEl.value = ''; urlEl.value = ''; showToast('链接已添加'); loadLinks(); }
+        else { showToast('添加失败: ' + (data.message || '')); }
       });
     }
 
@@ -229,84 +419,389 @@
       if (newTitle === null) return;
       var newURL = prompt('编辑链接URL:', link.url);
       if (newURL === null) return;
-
-      api('/api/links/' + id, 'PUT', {
-        title: newTitle.trim() || link.title,
-        url: newURL.trim() || link.url,
-        sort_order: link.sort_order
-      }).then(function(data) {
-        if (data.ok) {
-          showToast('链接已更新');
-          loadLinks();
-        } else {
-          showToast('更新失败: ' + (data.message || ''));
-        }
+      api('/api/links/' + id, 'PUT', { title: newTitle.trim() || link.title, url: newURL.trim() || link.url, sort_order: link.sort_order }).then(function(data) {
+        if (data.ok) { showToast('链接已更新'); loadLinks(); }
+        else { showToast('更新失败: ' + (data.message || '')); }
       });
     }
 
     function deleteLink(id) {
       if (!confirm('确定删除此链接？')) return;
       api('/api/links/' + id, 'DELETE').then(function(data) {
-        if (data.ok) {
-          showToast('链接已删除');
-          loadLinks();
-        } else {
-          showToast('删除失败: ' + (data.message || ''));
-        }
+        if (data.ok) { showToast('链接已删除'); loadLinks(); }
+        else { showToast('删除失败: ' + (data.message || '')); }
       });
     }
 
     function updateSort(id, newSort) {
       var sortVal = parseFloat(newSort);
       if (isNaN(sortVal)) return;
-
-      // Update local data
       var link = linksData.find(function(l) { return l.id === id; });
       if (link) link.sort_order = sortVal;
-
-      // Send reorder
-      var orders = linksData.map(function(l) {
-        return { id: l.id, sort_order: l.sort_order };
-      });
+      var orders = linksData.map(function(l) { return { id: l.id, sort_order: l.sort_order }; });
       api('/api/links/reorder', 'PUT', { orders: orders }).then(function(data) {
-        if (data.ok) {
-          showToast('排序已更新');
-        }
+        if (data.ok) showToast('排序已更新');
+      });
+    }
+
+    // ==================== 设置管理 ====================
+    function loadSettings() {
+      api('/api/settings', 'GET').then(function(data) {
+        document.getElementById('settingName').value = data.display_name || '';
+        document.getElementById('settingBio').value = data.bio || '';
+        document.getElementById('settingAvatar').value = data.avatar_data_url || '';
+        document.getElementById('settingAIBaseURL').value = data.ai_base_url || '';
+        document.getElementById('settingAIAPIKey').value = data.ai_api_key || '';
+        document.getElementById('settingAIModel').value = data.ai_model || '';
+      });
+    }
+
+    function saveSettings() {
+      var body = {
+        display_name: document.getElementById('settingName').value,
+        bio: document.getElementById('settingBio').value,
+        avatar_data_url: document.getElementById('settingAvatar').value
+      };
+      api('/api/settings', 'PUT', body).then(function(data) {
+        if (data.ok) showToast('设置已保存');
+        else showToast('保存失败: ' + (data.message || ''));
+      });
+    }
+
+    function saveAISettings() {
+      var body = {
+        ai_base_url: document.getElementById('settingAIBaseURL').value,
+        ai_api_key: document.getElementById('settingAIAPIKey').value,
+        ai_model: document.getElementById('settingAIModel').value
+      };
+      api('/api/settings', 'PUT', body).then(function(data) {
+        if (data.ok) { showToast('AI 设置已保存'); loadSettings(); }
+        else showToast('保存失败: ' + (data.message || ''));
       });
     }
 
     function changePassword() {
       var p1 = document.getElementById('newPassword').value;
       var p2 = document.getElementById('confirmPassword').value;
-      if (!p1) {
-        showToast('请输入新密码');
-        return;
-      }
-      if (p1 !== p2) {
-        showToast('两次密码不一致');
-        return;
-      }
-      if (p1.length < 6) {
-        showToast('密码至少6个字符');
-        return;
-      }
+      if (!p1) { showToast('请输入新密码'); return; }
+      if (p1 !== p2) { showToast('两次密码不一致'); return; }
+      if (p1.length < 6) { showToast('密码至少6个字符'); return; }
       if (!confirm('确定修改密码？修改后需要重新登录。')) return;
-
       api('/api/settings', 'PUT', { new_password: p1 }).then(function(data) {
+        if (data.ok) { showToast('密码已修改，即将跳转登录页...'); setTimeout(logout, 1500); }
+        else { showToast('修改失败: ' + (data.message || '')); }
+      });
+    }
+
+    // ==================== 分类管理 ====================
+    function loadCategories(type, targetId) {
+      api('/api/categories?type=' + type, 'GET').then(function(cats) {
+        if (type === 'file') fileCategories = cats;
+        else workCategories = cats;
+        var select = document.getElementById(targetId);
+        var current = select.value;
+        select.innerHTML = '<option value="">全部分类</option>';
+        cats.forEach(function(c) { select.innerHTML += '<option value="'+c.id+'">'+esc(c.name)+'</option>'; });
+        select.value = current;
+        updateWorkCategorySelects();
+      });
+    }
+
+    function updateWorkCategorySelects() {
+      ['workCategory', 'editWorkCategory'].forEach(function(id) {
+        var select = document.getElementById(id);
+        if (!select) return;
+        var current = select.value;
+        select.innerHTML = '<option value="">无分类</option>';
+        workCategories.forEach(function(c) { select.innerHTML += '<option value="'+c.id+'">'+esc(c.name)+'</option>'; });
+        select.value = current;
+      });
+    }
+
+    function showNewCategoryModal(type) {
+      document.getElementById('categoryType').value = type;
+      document.getElementById('categoryName').value = '';
+      openModal('categoryModal');
+    }
+
+    function createCategory() {
+      var name = document.getElementById('categoryName').value.trim();
+      var type = document.getElementById('categoryType').value;
+      if (!name) { showToast('请输入分类名称'); return; }
+      api('/api/categories', 'POST', { name: name, type: type }).then(function(data) {
         if (data.ok) {
-          showToast('密码已修改，即将跳转登录页...');
-          setTimeout(function() {
-            logout();
-          }, 1500);
+          closeModal('categoryModal');
+          showToast('分类已创建');
+          loadCategories(type, type === 'file' ? 'fileCategoryFilter' : 'workCategoryFilter');
         } else {
-          showToast('修改失败: ' + (data.message || ''));
+          showToast('创建失败: ' + (data.message || ''));
         }
       });
     }
 
-    // 初始化
+    // ==================== 文件管理 ====================
+    function loadFiles() {
+      var catId = document.getElementById('fileCategoryFilter').value;
+      var url = '/api/files' + (catId ? '?category_id=' + catId : '');
+      api(url, 'GET').then(function(files) { filesData = files; renderFiles(); });
+    }
+
+    function renderFiles() {
+      var body = document.getElementById('filesBody');
+      if (filesData.length === 0) {
+        body.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-secondary);">暂无文件，点击上方上传</td></tr>';
+        return;
+      }
+      var html = '';
+      filesData.forEach(function(f) {
+        var catName = '';
+        if (f.category_id) {
+          var cat = fileCategories.find(function(c) { return c.id === f.category_id; });
+          if (cat) catName = cat.name;
+        }
+        html += '<tr>' +
+          '<td style="word-break:break-all;">' + esc(f.original_name) + '</td>' +
+          '<td>' + formatSize(f.size) + '</td>' +
+          '<td>' + esc(catName || '-') + '</td>' +
+          '<td>' + f.download_count + '</td>' +
+          '<td class="actions-cell">' +
+            '<a href="/api/files/download/' + f.id + '" class="edit-btn" style="text-decoration:none;">下载</a>' +
+            '<button class="del-btn" onclick="deleteFile(' + f.id + ')">删除</button>' +
+          '</td>' +
+        '</tr>';
+      });
+      body.innerHTML = html;
+    }
+
+    function uploadFiles(fileList) {
+      if (!fileList || fileList.length === 0) return;
+      var catId = document.getElementById('fileCategoryFilter').value;
+      var total = fileList.length;
+      var done = 0;
+      var errors = 0;
+
+      for (var i = 0; i < fileList.length; i++) {
+        var formData = new FormData();
+        formData.append('file', fileList[i]);
+        if (catId) formData.append('category_id', catId);
+        formData.append('is_public', '1');
+
+        apiUpload('/api/files/upload', formData).then(function(data) {
+          done++;
+          if (!data.ok) errors++;
+          if (done === total) {
+            document.getElementById('fileUploadInput').value = '';
+            showToast('上传完成: ' + (total - errors) + '成功, ' + errors + '失败');
+            loadFiles();
+          }
+        }).catch(function() {
+          done++; errors++;
+          if (done === total) {
+            document.getElementById('fileUploadInput').value = '';
+            showToast('上传完成: ' + (total - errors) + '成功, ' + errors + '失败');
+            loadFiles();
+          }
+        });
+      }
+    }
+
+    function deleteFile(id) {
+      if (!confirm('确定删除此文件？')) return;
+      api('/api/files/' + id, 'DELETE').then(function(data) {
+        if (data.ok) { showToast('文件已删除'); loadFiles(); }
+        else { showToast('删除失败: ' + (data.message || '')); }
+      });
+    }
+
+    // ==================== 作品管理 ====================
+    function loadWorks() {
+      var catId = document.getElementById('workCategoryFilter').value;
+      var url = '/api/works' + (catId ? '?category_id=' + catId : '');
+      api(url, 'GET').then(function(works) { worksData = works; renderWorks(); });
+    }
+
+    function renderWorks() {
+      var grid = document.getElementById('worksGrid');
+      if (worksData.length === 0) {
+        grid.innerHTML = '<div style="text-align:center; color:var(--text-secondary); padding:40px;">暂无作品，点击上方新建</div>';
+        return;
+      }
+      var html = '';
+      worksData.forEach(function(w) {
+        var cover = w.cover_url || '';
+        var catName = '';
+        if (w.category_id) {
+          var cat = workCategories.find(function(c) { return c.id === w.category_id; });
+          if (cat) catName = cat.name;
+        }
+        html += '<div class="work-card" onclick="editWork(' + w.id + ')">' +
+          '<div class="work-card-cover">' +
+            (cover ? '<img src="'+esc(cover)+'" alt="'+esc(w.title)+'">' : '<div class="work-card-placeholder">🎨</div>') +
+            '<span class="work-card-type">'+esc(w.content_type)+'</span>' +
+          '</div>' +
+          '<div class="work-card-info">' +
+            '<div class="work-card-title">'+esc(w.title)+'</div>' +
+            (catName ? '<div class="work-card-cat">'+esc(catName)+'</div>' : '') +
+          '</div>' +
+        '</div>';
+      });
+      grid.innerHTML = html;
+    }
+
+    function showNewWorkModal() {
+      document.getElementById('workTitle').value = '';
+      document.getElementById('workDesc').value = '';
+      document.getElementById('workCover').value = '';
+      document.getElementById('workContentType').value = 'image';
+      document.getElementById('workExternal').value = '';
+      updateWorkCategorySelects();
+      openModal('workModal');
+    }
+
+    function createWork() {
+      var title = document.getElementById('workTitle').value.trim();
+      if (!title) { showToast('请输入作品标题'); return; }
+      var body = {
+        title: title,
+        description: document.getElementById('workDesc').value,
+        cover_url: document.getElementById('workCover').value,
+        content_type: document.getElementById('workContentType').value,
+        external_url: document.getElementById('workExternal').value,
+        category_id: document.getElementById('workCategory').value ? parseInt(document.getElementById('workCategory').value) : null
+      };
+      api('/api/works', 'POST', body).then(function(data) {
+        if (data.ok) { closeModal('workModal'); showToast('作品已创建'); loadWorks(); }
+        else { showToast('创建失败: ' + (data.message || '')); }
+      });
+    }
+
+    function editWork(id) {
+      var work = worksData.find(function(w) { return w.id === id; });
+      if (!work) return;
+      document.getElementById('editWorkId').value = work.id;
+      document.getElementById('editWorkTitle').value = work.title;
+      document.getElementById('editWorkDesc').value = work.description;
+      document.getElementById('editWorkCover').value = work.cover_url;
+      document.getElementById('editWorkContentType').value = work.content_type;
+      document.getElementById('editWorkExternal').value = work.external_url;
+      updateWorkCategorySelects();
+      document.getElementById('editWorkCategory').value = work.category_id || '';
+      editingWorkMedia = work.media ? work.media.slice() : [];
+      renderEditWorkMedia();
+      openModal('workEditModal');
+    }
+
+    function renderEditWorkMedia() {
+      var list = document.getElementById('editWorkMediaList');
+      if (editingWorkMedia.length === 0) {
+        list.innerHTML = '<div style="color:var(--text-secondary); font-size:13px;">暂无媒体</div>';
+        return;
+      }
+      var html = '';
+      editingWorkMedia.forEach(function(m, i) {
+        html += '<div style="display:flex; align-items:center; gap:8px; padding:6px 10px; background:var(--btn-bg); border-radius:8px;">' +
+          '<span style="flex:1; font-size:13px; word-break:break-all;">'+esc(m.media_url)+'</span>' +
+          '<span style="font-size:12px; color:var(--text-secondary);">'+m.media_type+'</span>' +
+          '<button class="del-btn" onclick="removeEditMedia('+i+')">移除</button>' +
+        '</div>';
+      });
+      list.innerHTML = html;
+    }
+
+    function removeEditMedia(index) {
+      editingWorkMedia.splice(index, 1);
+      renderEditWorkMedia();
+    }
+
+    function addMediaToWork() {
+      var url = document.getElementById('newMediaUrl').value.trim();
+      var type = document.getElementById('newMediaType').value;
+      if (!url) { showToast('请输入媒体URL'); return; }
+      editingWorkMedia.push({ media_url: url, media_type: type });
+      document.getElementById('newMediaUrl').value = '';
+      renderEditWorkMedia();
+    }
+
+    function saveWorkEdit() {
+      var id = document.getElementById('editWorkId').value;
+      var title = document.getElementById('editWorkTitle').value.trim();
+      if (!title) { showToast('标题不能为空'); return; }
+      var body = {
+        title: title,
+        description: document.getElementById('editWorkDesc').value,
+        cover_url: document.getElementById('editWorkCover').value,
+        content_type: document.getElementById('editWorkContentType').value,
+        external_url: document.getElementById('editWorkExternal').value,
+        category_id: document.getElementById('editWorkCategory').value ? parseInt(document.getElementById('editWorkCategory').value) : null
+      };
+      api('/api/works/' + id, 'PUT', body).then(function(data) {
+        if (data.ok) {
+          showToast('作品已更新');
+          loadWorks();
+        } else {
+          showToast('更新失败: ' + (data.message || ''));
+        }
+      });
+    }
+
+    function deleteWorkFromEdit() {
+      var id = document.getElementById('editWorkId').value;
+      if (!confirm('确定删除此作品？')) return;
+      api('/api/works/' + id, 'DELETE').then(function(data) {
+        if (data.ok) { closeModal('workEditModal'); showToast('作品已删除'); loadWorks(); }
+        else { showToast('删除失败: ' + (data.message || '')); }
+      });
+    }
+
+    // ==================== 对话管理 ====================
+    var chatsData = [];
+
+    function loadChats() {
+      api('/api/chat/sessions', 'GET').then(function(data) {
+        chatsData = data;
+        renderChats();
+      });
+    }
+
+    function renderChats() {
+      var body = document.getElementById('chatsBody');
+      if (chatsData.length === 0) {
+        body.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-secondary);">暂无对话记录</td></tr>';
+        return;
+      }
+      var html = '';
+      chatsData.forEach(function(c) {
+        html += '<tr>' +
+          '<td style="word-break:break-all;">' + esc(c.title) + '</td>' +
+          '<td style="font-size:12px;">' + esc(c.model || '-') + '</td>' +
+          '<td>' + (c.message_count || 0) + '</td>' +
+          '<td style="font-size:12px;">' + esc(c.updated_at || '-') + '</td>' +
+          '<td class="actions-cell">' +
+            '<a href="/chat?session=' + c.id + '" class="edit-btn" style="text-decoration:none;">查看</a>' +
+            '<button class="del-btn" onclick="deleteChat(' + c.id + ')">删除</button>' +
+          '</td>' +
+        '</tr>';
+      });
+      body.innerHTML = html;
+    }
+
+    function deleteChat(id) {
+      var chat = chatsData.find(function(c) { return c.id === id; });
+      if (!confirm('确定删除对话「' + (chat ? chat.title : '') + '」？')) return;
+      api('/api/chat/sessions/' + id, 'DELETE').then(function(data) {
+        if (data.ok) { showToast('对话已删除'); loadChats(); }
+        else { showToast('删除失败: ' + (data.message || '')); }
+      });
+    }
+
+    // ==================== 初始化 ====================
     loadSettings();
     loadLinks();
+    loadCategories('file', 'fileCategoryFilter');
+    loadCategories('work', 'workCategoryFilter');
+    loadFiles();
+    loadWorks();
+    loadChats();
   </script>
 </body>
 </html>

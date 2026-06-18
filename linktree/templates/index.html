@@ -5,36 +5,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="{{.DisplayName}} - 个人链接聚合页">
   <title>{{.DisplayName}}</title>
+  <link rel="icon" type="image/jpeg" href="/static/avatar.jpg">
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body data-theme="{{.Theme}}">
-  <!-- 主题切换 -->
+  <nav class="top-nav" id="topNav">
+    <div class="nav-inner">
+      <img src="/static/avatar.jpg" alt="{{.DisplayName}}" class="nav-logo">
+      <span class="nav-title">{{.DisplayName}}</span>
+    </div>
+  </nav>
+
   <button class="theme-toggle" id="themeToggle" title="切换主题" aria-label="切换暗色/亮色模式">
-    <span class="theme-icon" id="themeIcon">🌙</span>
+    <span class="theme-icon" id="themeIcon">&#127769;</span>
   </button>
 
-  <!-- 主卡片 -->
-  <main class="container">
-    <!-- 头像 -->
-    <div class="avatar-wrap">
-      {{if .AvatarURL}}
-      <img src="{{.AvatarURL}}" alt="{{.DisplayName}}">
-      {{else}}
-      <div class="avatar-placeholder">🙂</div>
-      {{end}}
+  <div class="main-layout">
+    <main class="container">
+    <div class="avatar-wrap" id="avatarWrap" style="cursor:pointer">
+      <img src="/static/avatar.jpg" alt="{{.DisplayName}}">
     </div>
 
-    <!-- 名字 -->
+    <div class="avatar-modal" id="avatarModal">
+      <img src="/static/avatar.jpg" alt="{{.DisplayName}}">
+      <button class="modal-close" id="modalClose">&times;</button>
+    </div>
+
     <h1 class="name">{{.DisplayName}}</h1>
 
-    <!-- 简介 -->
     {{if .Bio}}
     <p class="bio">{{.Bio}}</p>
     {{else}}
     <div style="height: 10px;"></div>
     {{end}}
 
-    <!-- 链接按钮 -->
     <div class="links">
       {{range .Links}}
       <a class="link-btn" href="{{.URL}}" target="_blank" rel="noopener noreferrer">
@@ -43,15 +47,234 @@
       </a>
       {{end}}
     </div>
+
+    <div class="section-divider"></div>
+    <div class="section-header">
+      <h2 class="section-title">🎨 作品展示</h2>
+    </div>
+    {{if .Works}}
+    <div class="works-grid-public">
+      {{range .Works}}
+      <div class="work-card-public" onclick="openWorkModal({{.ID}})">
+        {{if .CoverURL}}
+        <img src="{{.CoverURL}}" alt="{{.Title}}" class="work-cover-public">
+        {{else}}
+        <div class="work-cover-placeholder-public">🎨</div>
+        {{end}}
+        <div class="work-info-public">
+          <div class="work-title-public">{{.Title}}</div>
+          {{if .Description}}<div class="work-desc-public">{{.Description}}</div>{{end}}
+        </div>
+      </div>
+      {{end}}
+    </div>
+    {{else}}
+    <div class="empty-hint">暂无作品，等待添加</div>
+    {{end}}
+
+    <div class="section-divider"></div>
+    <div class="section-header">
+      <h2 class="section-title">📁 文件下载</h2>
+    </div>
+    {{if .Files}}
+    <div class="files-list-public">
+      {{range .Files}}
+      <a class="file-item-public" href="/api/files/download/{{.ID}}" target="_blank">
+        <span class="file-icon-public">
+          {{if eq .MimeType "image/jpeg"}}🖼️
+          {{else if eq .MimeType "image/png"}}🖼️
+          {{else if eq .MimeType "image/gif"}}🖼️
+          {{else if eq .MimeType "application/pdf"}}📄
+          {{else if eq .MimeType "video/mp4"}}🎬
+          {{else if eq .MimeType "video/webm"}}🎬
+          {{else if eq .MimeType "application/zip"}}📦
+          {{else if eq .MimeType "application/x-rar-compressed"}}📦
+          {{else}}📎{{end}}
+        </span>
+        <span class="file-name-public">{{.OriginalName}}</span>
+        <span class="file-size-public">{{.FormattedSize}}</span>
+      </a>
+      {{end}}
+    </div>
+    {{else}}
+    <div class="empty-hint">暂无文件，等待上传</div>
+    {{end}}
   </main>
 
-  <!-- 页脚 -->
+  <div class="widgets-standalone">
+    <div class="widget clock-widget" id="clockWidget" style="cursor:pointer">
+      <div class="widget-icon">&#x1F550;</div>
+      <div class="widget-content">
+        <div class="clock-time" id="clockTime">--:--:--</div>
+        <div class="clock-date" id="clockDate">----/--/--</div>
+      </div>
+    </div>
+
+    <div class="widget calendar-widget" id="calendarWidget" style="cursor:pointer">
+      <div class="widget-icon">&#x1F4C5;</div>
+      <div class="widget-content">
+        <div class="calendar-day" id="calendarDay">--</div>
+        <div class="calendar-info">
+          <span class="calendar-month" id="calendarMonth">--&#x6708;</span>
+          <span class="calendar-weekday" id="calendarWeekday">&#x661F;&#x671F;-</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="widget weather-widget" id="weatherWidget" style="cursor:pointer">
+      <div class="widget-icon" id="weatherIcon">&#x1F324;&#xFE0F;</div>
+      <div class="widget-content">
+        <div class="weather-temp" id="weatherTemp">--&#x00B0;C</div>
+        <div class="weather-desc" id="weatherDesc">&#x52A0;&#x8F7D;&#x4E2D;...</div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div class="modal" id="clockModal">
+    <div class="modal-content clock-modal-content">
+      <button class="modal-close" id="clockModalClose">&times;</button>
+      <div class="clock-modal-title">&#x5F53;&#x524D;&#x65F6;&#x95F4;</div>
+      <canvas id="clockCanvas" width="280" height="280"></canvas>
+      <div class="clock-digital" id="clockDigital">--:--:--</div>
+      <div class="clock-date-detail" id="clockDateDetail">----&#x5E74;--&#x6708;--&#x65E5;</div>
+    </div>
+  </div>
+
+  <div class="modal" id="calendarModal">
+    <div class="modal-content calendar-modal-content">
+      <button class="modal-close" id="calendarModalClose">&times;</button>
+      <div class="calendar-header">
+        <button class="cal-nav" id="calPrev">&lt;</button>
+        <span class="cal-title" id="calTitle">2026&#x5E74;6&#x6708;</span>
+        <button class="cal-nav" id="calNext">&gt;</button>
+      </div>
+      <div class="calendar-weekdays">
+        <span>&#x65E5;</span><span>&#x4E00;</span><span>&#x4E8C;</span><span>&#x4E09;</span><span>&#x56DB;</span><span>&#x4E94;</span><span>&#x516D;</span>
+      </div>
+      <div class="calendar-grid" id="calendarGrid"></div>
+    </div>
+  </div>
+
+  <div class="modal" id="weatherModal">
+    <div class="modal-content weather-modal-content">
+      <button class="modal-close" id="weatherModalClose">&times;</button>
+      <div class="weather-detail-header">
+        <div class="weather-detail-icon" id="weatherDetailIcon">&#x1F324;&#xFE0F;</div>
+        <div class="weather-detail-temp" id="weatherDetailTemp">--&#x00B0;C</div>
+        <div class="weather-detail-desc" id="weatherDetailDesc">&#x52A0;&#x8F7D;&#x4E2D;...</div>
+      </div>
+      <div class="weather-info-grid">
+        <div class="info-item"><span class="info-label">&#x4F53;&#x611F;&#x6E29;&#x5EA6;</span><span class="info-value" id="feelsLike">--&#x00B0;C</span></div>
+        <div class="info-item"><span class="info-label">&#x6E7F;&#x5EA6;</span><span class="info-value" id="humidity">--%</span></div>
+        <div class="info-item"><span class="info-label">&#x98CE;&#x901F;</span><span class="info-value" id="windSpeed">-- km/h</span></div>
+        <div class="info-item"><span class="info-label">&#x80FD;&#x89C1;&#x5EA6;</span><span class="info-value" id="visibility">-- km</span></div>
+        <div class="info-item"><span class="info-label">&#x6C14;&#x538B;</span><span class="info-value" id="pressure">-- hPa</span></div>
+        <div class="info-item"><span class="info-label">&#x7D2B;&#x5916;&#x7EBF;</span><span class="info-value" id="uvIndex">--</span></div>
+      </div>
+    </div>
+  </div>
+
   <footer class="footer">
-    <a href="/admin/login" class="admin-link">管理</a>
+    <a href="/chat" class="admin-link" title="AI 对话">聊</a>
+    <a href="/admin/login" class="admin-link" style="margin-top:8px;">管</a>
   </footer>
 
+  <!-- 作品详情弹窗 -->
+  <div class="modal" id="workDetailModal">
+    <div class="modal-content work-detail-content">
+      <button class="modal-close" onclick="closeWorkModal()">&times;</button>
+      <div id="workDetailBody"></div>
+    </div>
+  </div>
+
   <script>
-    // 主题切换
+    // 作品数据
+    var publicWorks = {{.Works}};
+
+    function openWorkModal(workId) {
+      var work = publicWorks.find(function(w) { return w.id === workId; });
+      if (!work) return;
+      var body = document.getElementById('workDetailBody');
+      var html = '';
+      if (work.cover_url) {
+        html += '<img src="' + work.cover_url + '" alt="' + work.title + '" style="width:100%; border-radius:16px; margin-bottom:16px;">';
+      }
+      html += '<h2 style="font-size:20px; font-weight:700; color:var(--text-primary); margin-bottom:8px;">' + work.title + '</h2>';
+      if (work.description) {
+        html += '<p style="color:var(--text-secondary); font-size:14px; line-height:1.6; margin-bottom:16px;">' + work.description + '</p>';
+      }
+      if (work.media && work.media.length > 0) {
+        html += '<div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;">';
+        work.media.forEach(function(m) {
+          if (m.media_type === 'image') {
+            html += '<img src="' + m.media_url + '" style="max-width:100%; border-radius:12px; cursor:pointer;" onclick="window.open(\'' + m.media_url + '\', \'_blank\')">';
+          } else if (m.media_type === 'video') {
+            html += '<video src="' + m.media_url + '" controls style="max-width:100%; border-radius:12px;"></video>';
+          }
+        });
+        html += '</div>';
+      }
+      if (work.external_url) {
+        html += '<a href="' + work.external_url + '" target="_blank" class="link-btn" style="margin-top:16px; display:flex; text-decoration:none;">🔗 查看详情</a>';
+      }
+      body.innerHTML = html;
+      document.getElementById('workDetailModal').classList.add('active');
+    }
+
+    function closeWorkModal() {
+      document.getElementById('workDetailModal').classList.remove('active');
+    }
+  </script>
+
+  <script>
+    (function() {
+      const avatarWrap = document.getElementById('avatarWrap');
+      const modal = document.getElementById('avatarModal');
+      const closeBtn = document.getElementById('modalClose');
+
+      avatarWrap.addEventListener('click', function() {
+        modal.classList.add('active');
+      });
+
+      closeBtn.addEventListener('click', function() {
+        modal.classList.remove('active');
+      });
+
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+          modal.classList.remove('active');
+        }
+      });
+
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          document.querySelectorAll('.modal, .avatar-modal').forEach(function(m) {
+            m.classList.remove('active');
+          });
+          if (window.stopClockAnimation) window.stopClockAnimation();
+        }
+      });
+    })();
+  </script>
+
+  <script>
+    (function() {
+      const nav = document.getElementById('topNav');
+      let lastScrollY = window.scrollY;
+      window.addEventListener('scroll', function() {
+        const currentScrollY = window.scrollY;
+        if (currentScrollY > lastScrollY && currentScrollY > 60) {
+          nav.classList.add('hidden');
+        } else {
+          nav.classList.remove('hidden');
+        }
+        lastScrollY = currentScrollY;
+      });
+    })();
+  </script>
+
+  <script>
     (function() {
       const html = document.documentElement;
       const toggle = document.getElementById('themeToggle');
@@ -71,26 +294,21 @@
 
       function applyTheme(theme) {
         html.setAttribute('data-theme', theme);
-        icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+        icon.textContent = theme === 'dark' ? '\u2600\uFE0F' : '\uD83C\uDF19';
         localStorage.setItem('linktree-theme', theme);
-        
-        // 更新 body 背景动画
         document.body.style.animation = 'none';
-        document.body.offsetHeight; // 触发重绘
+        document.body.offsetHeight;
         document.body.style.animation = '';
       }
 
-      // 初始主题
       applyTheme(getEffectiveTheme());
 
-      // 切换按钮
       toggle.addEventListener('click', function() {
         const current = html.getAttribute('data-theme');
         const next = current === 'dark' ? 'light' : 'dark';
         applyTheme(next);
       });
 
-      // 系统主题变化时自动跟随
       window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
         if (localStorage.getItem('linktree-theme') === 'auto') {
           applyTheme(getSystemTheme());
@@ -98,37 +316,331 @@
       });
     })();
   </script>
+
   <script>
-    // 3D 倾斜效果
     (function() {
       const buttons = document.querySelectorAll('.link-btn');
-      
-      buttons.forEach(btn => {
-        btn.addEventListener('mousemove', (e) => {
+      buttons.forEach(function(btn) {
+        btn.addEventListener('mousemove', function(e) {
           btn.style.transition = 'none';
-          const rect = btn.getBoundingClientRect();
-          const x = e.clientX - rect.left;
-          const y = e.clientY - rect.top;
-          const centerX = rect.width / 2;
-          const centerY = rect.height / 2;
-          const rotateX = (y - centerY) / 10;
-          const rotateY = (centerX - x) / 10;
-          
-          btn.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+          var rect = btn.getBoundingClientRect();
+          var x = e.clientX - rect.left;
+          var y = e.clientY - rect.top;
+          var centerX = rect.width / 2;
+          var centerY = rect.height / 2;
+          var rotateX = (y - centerY) / 10;
+          var rotateY = (centerX - x) / 10;
+          btn.style.transform = 'perspective(1000px) rotateX(' + rotateX + 'deg) rotateY(' + rotateY + 'deg) scale(1.02)';
         });
-        
-        btn.addEventListener('mouseleave', () => {
+        btn.addEventListener('mouseleave', function() {
           btn.style.transition = '';
           btn.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
         });
-        
-        btn.addEventListener('mousedown', () => {
+        btn.addEventListener('mousedown', function() {
           btn.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(0.98)';
         });
-        
-        btn.addEventListener('mouseup', () => {
+        btn.addEventListener('mouseup', function() {
           btn.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
         });
+      });
+    })();
+  </script>
+
+  <script>
+    (function() {
+      var timeEl = document.getElementById('clockTime');
+      var dateEl = document.getElementById('clockDate');
+      var clockWidget = document.getElementById('clockWidget');
+      var clockModal = document.getElementById('clockModal');
+      var clockModalClose = document.getElementById('clockModalClose');
+      var clockDigital = document.getElementById('clockDigital');
+      var clockDateDetail = document.getElementById('clockDateDetail');
+      var canvas = document.getElementById('clockCanvas');
+      var ctx = canvas.getContext('2d');
+      var clockAnimId = null;
+
+      function updateClock() {
+        var now = new Date();
+        timeEl.textContent = pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+        dateEl.textContent = now.getFullYear() + '/' + pad(now.getMonth() + 1) + '/' + pad(now.getDate());
+      }
+
+      function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+      function drawClock() {
+        var now = new Date();
+        var w = canvas.width, h = canvas.height;
+        var cx = w / 2, cy = h / 2;
+        var r = Math.min(cx, cy) - 10;
+        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+        ctx.clearRect(0, 0, w, h);
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fillStyle = isDark ? 'rgba(40,40,70,0.95)' : 'rgba(255,255,255,0.95)';
+        ctx.fill();
+        ctx.strokeStyle = isDark ? 'rgba(100,181,246,0.3)' : 'rgba(79,172,254,0.3)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        for (var i = 0; i < 60; i++) {
+          var angle = (i * 6 - 90) * Math.PI / 180;
+          var isHour = i % 5 === 0;
+          var innerR = isHour ? r - 18 : r - 10;
+          var outerR = r - 4;
+          ctx.beginPath();
+          ctx.moveTo(cx + innerR * Math.cos(angle), cy + innerR * Math.sin(angle));
+          ctx.lineTo(cx + outerR * Math.cos(angle), cy + outerR * Math.sin(angle));
+          ctx.strokeStyle = isHour ? (isDark ? '#64b5f6' : '#4facfe') : (isDark ? 'rgba(100,181,246,0.25)' : 'rgba(79,172,254,0.25)');
+          ctx.lineWidth = isHour ? 2.5 : 1;
+          ctx.stroke();
+        }
+
+        ctx.font = 'bold 16px -apple-system, sans-serif';
+        ctx.fillStyle = isDark ? '#e8ecf4' : '#2d3748';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        for (var i = 1; i <= 12; i++) {
+          var angle = (i * 30 - 90) * Math.PI / 180;
+          ctx.fillText(String(i), cx + (r - 30) * Math.cos(angle), cy + (r - 30) * Math.sin(angle));
+        }
+
+        var hours = now.getHours() % 12;
+        var minutes = now.getMinutes();
+        var seconds = now.getSeconds();
+        var ms = now.getMilliseconds();
+
+        var hourAngle = ((hours + minutes / 60) * 30 - 90) * Math.PI / 180;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + 50 * Math.cos(hourAngle), cy + 50 * Math.sin(hourAngle));
+        ctx.strokeStyle = isDark ? '#e8ecf4' : '#2d3748';
+        ctx.lineWidth = 5;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+
+        var minAngle = ((minutes + seconds / 60) * 6 - 90) * Math.PI / 180;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + 70 * Math.cos(minAngle), cy + 70 * Math.sin(minAngle));
+        ctx.strokeStyle = isDark ? '#9aa5b8' : '#4a5568';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        var secAngle = ((seconds + ms / 1000) * 6 - 90) * Math.PI / 180;
+        ctx.beginPath();
+        ctx.moveTo(cx - 15 * Math.cos(secAngle), cy - 15 * Math.sin(secAngle));
+        ctx.lineTo(cx + 80 * Math.cos(secAngle), cy + 80 * Math.sin(secAngle));
+        ctx.strokeStyle = '#e74c3c';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#e74c3c';
+        ctx.fill();
+
+        clockDigital.textContent = pad(now.getHours()) + ':' + pad(minutes) + ':' + pad(seconds);
+        clockDateDetail.textContent = now.getFullYear() + '\u5E74' + (now.getMonth()+1) + '\u6708' + now.getDate() + '\u65E5 ' + ['\u661F\u671F\u65E5','\u661F\u671F\u4E00','\u661F\u671F\u4E8C','\u661F\u671F\u4E09','\u661F\u671F\u56DB','\u661F\u671F\u4E94','\u661F\u671F\u516D'][now.getDay()];
+      }
+
+      function startClockAnimation() {
+        function animate() {
+          drawClock();
+          clockAnimId = requestAnimationFrame(animate);
+        }
+        animate();
+      }
+
+      function stopClockAnimation() {
+        if (clockAnimId) {
+          cancelAnimationFrame(clockAnimId);
+          clockAnimId = null;
+        }
+      }
+
+      window.stopClockAnimation = stopClockAnimation;
+
+      updateClock();
+      setInterval(updateClock, 1000);
+
+      clockWidget.addEventListener('click', function() {
+        clockModal.classList.add('active');
+        drawClock();
+        startClockAnimation();
+      });
+
+      clockModalClose.addEventListener('click', function() {
+        clockModal.classList.remove('active');
+        stopClockAnimation();
+      });
+
+      clockModal.addEventListener('click', function(e) {
+        if (e.target === clockModal) {
+          clockModal.classList.remove('active');
+          stopClockAnimation();
+        }
+      });
+    })();
+  </script>
+
+  <script>
+    (function() {
+      var dayEl = document.getElementById('calendarDay');
+      var monthEl = document.getElementById('calendarMonth');
+      var weekdayEl = document.getElementById('calendarWeekday');
+      var calendarWidget = document.getElementById('calendarWidget');
+      var calendarModal = document.getElementById('calendarModal');
+      var calendarModalClose = document.getElementById('calendarModalClose');
+      var calTitle = document.getElementById('calTitle');
+      var calPrev = document.getElementById('calPrev');
+      var calNext = document.getElementById('calNext');
+      var calendarGrid = document.getElementById('calendarGrid');
+
+      var weekdays = ['\u661F\u671F\u65E5', '\u661F\u671F\u4E00', '\u661F\u671F\u4E8C', '\u661F\u671F\u4E09', '\u661F\u671F\u56DB', '\u661F\u671F\u4E94', '\u661F\u671F\u516D'];
+      var calYear, calMonth;
+
+      function updateCalendar() {
+        var now = new Date();
+        dayEl.textContent = now.getDate();
+        monthEl.textContent = (now.getMonth() + 1) + '\u6708';
+        weekdayEl.textContent = weekdays[now.getDay()];
+        calYear = now.getFullYear();
+        calMonth = now.getMonth();
+      }
+
+      function generateCalendarGrid(year, month) {
+        calTitle.textContent = year + '\u5E74' + (month + 1) + '\u6708';
+        calendarGrid.innerHTML = '';
+        var firstDay = new Date(year, month, 1).getDay();
+        var daysInMonth = new Date(year, month + 1, 0).getDate();
+        var today = new Date();
+        var isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+
+        for (var i = 0; i < firstDay; i++) {
+          var empty = document.createElement('div');
+          empty.className = 'cal-day empty';
+          calendarGrid.appendChild(empty);
+        }
+
+        for (var d = 1; d <= daysInMonth; d++) {
+          var dayDiv = document.createElement('div');
+          dayDiv.className = 'cal-day';
+          dayDiv.textContent = d;
+          if (isCurrentMonth && d === today.getDate()) {
+            dayDiv.classList.add('today');
+          }
+          if ((firstDay + d - 1) % 7 === 0 || (firstDay + d - 1) % 7 === 6) {
+            dayDiv.classList.add('weekend');
+          }
+          calendarGrid.appendChild(dayDiv);
+        }
+      }
+
+      updateCalendar();
+
+      calendarWidget.addEventListener('click', function() {
+        calendarModal.classList.add('active');
+        generateCalendarGrid(calYear, calMonth);
+      });
+
+      calendarModalClose.addEventListener('click', function() {
+        calendarModal.classList.remove('active');
+      });
+
+      calendarModal.addEventListener('click', function(e) {
+        if (e.target === calendarModal) {
+          calendarModal.classList.remove('active');
+        }
+      });
+
+      calPrev.addEventListener('click', function() {
+        calMonth--;
+        if (calMonth < 0) { calMonth = 11; calYear--; }
+        generateCalendarGrid(calYear, calMonth);
+      });
+
+      calNext.addEventListener('click', function() {
+        calMonth++;
+        if (calMonth > 11) { calMonth = 0; calYear++; }
+        generateCalendarGrid(calYear, calMonth);
+      });
+    })();
+  </script>
+
+  <script>
+    (function() {
+      var tempEl = document.getElementById('weatherTemp');
+      var descEl = document.getElementById('weatherDesc');
+      var iconEl = document.getElementById('weatherIcon');
+      var weatherWidget = document.getElementById('weatherWidget');
+      var weatherModal = document.getElementById('weatherModal');
+      var weatherModalClose = document.getElementById('weatherModalClose');
+
+      var weatherIcons = {
+        '\u6674': '\u2600\uFE0F', '\u591A\u4E91': '\u26C5', '\u9634': '\u2601\uFE0F',
+        '\u5C0F\u96E8': '\uD83C\uDF26\uFE0F', '\u4E2D\u96E8': '\uD83C\uDF27\uFE0F', '\u5927\u96E8': '\uD83C\uDF27\uFE0F',
+        '\u96F7\u9635\u96E8': '\u26C8\uFE0F', '\u96EA': '\uD83C\uDF28\uFE0F', '\u96FE': '\uD83C\uDF2B\uFE0F'
+      };
+
+      function getWeatherIcon(desc) {
+        for (var key in weatherIcons) {
+          if (desc.indexOf(key) !== -1) return weatherIcons[key];
+        }
+        return '\uD83C\uDF24\uFE0F';
+      }
+
+      var weatherData = null;
+
+      async function fetchWeather() {
+        try {
+          var res = await fetch('https://wttr.in/?format=j1&lang=zh');
+          var data = await res.json();
+          var current = data.current_condition[0];
+          var temp = current.temp_C;
+          var desc = current.lang_zh && current.lang_zh[0] ? current.lang_zh[0].value : current.weatherDesc[0].value;
+
+          weatherData = current;
+          tempEl.textContent = temp + '\u00B0C';
+          descEl.textContent = desc;
+          iconEl.textContent = getWeatherIcon(desc);
+        } catch (e) {
+          tempEl.textContent = '--\u00B0C';
+          descEl.textContent = '\u83B7\u53D6\u5931\u8D25';
+        }
+      }
+
+      function updateWeatherModal() {
+        if (!weatherData) return;
+        var desc = weatherData.lang_zh && weatherData.lang_zh[0] ? weatherData.lang_zh[0].value : weatherData.weatherDesc[0].value;
+        document.getElementById('weatherDetailIcon').textContent = getWeatherIcon(desc);
+        document.getElementById('weatherDetailTemp').textContent = weatherData.temp_C + '\u00B0C';
+        document.getElementById('weatherDetailDesc').textContent = desc;
+        document.getElementById('feelsLike').textContent = weatherData.FeelsLikeC + '\u00B0C';
+        document.getElementById('humidity').textContent = weatherData.humidity + '%';
+        document.getElementById('windSpeed').textContent = weatherData.windspeedKmph + ' km/h';
+        document.getElementById('visibility').textContent = weatherData.visibility + ' km';
+        document.getElementById('pressure').textContent = weatherData.pressure + ' hPa';
+        document.getElementById('uvIndex').textContent = weatherData.uvIndex;
+      }
+
+      fetchWeather();
+      setInterval(fetchWeather, 30 * 60 * 1000);
+
+      weatherWidget.addEventListener('click', function() {
+        weatherModal.classList.add('active');
+        updateWeatherModal();
+      });
+
+      weatherModalClose.addEventListener('click', function() {
+        weatherModal.classList.remove('active');
+      });
+
+      weatherModal.addEventListener('click', function(e) {
+        if (e.target === weatherModal) {
+          weatherModal.classList.remove('active');
+        }
       });
     })();
   </script>

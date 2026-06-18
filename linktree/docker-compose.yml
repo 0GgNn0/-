@@ -10,7 +10,9 @@ services:
       - ./data:/app/data
     environment:
       - PORT=8080
+      - DATA_DIR=/app/data
       - ADMIN_PASSWORD=ChangeMe123!
       - SESSION_SECRET=linktree-ahpeng-secret-2026
+      - MAX_FILE_SIZE=209715200
       - TZ=Asia/Shanghai
     restart: unless-stopped

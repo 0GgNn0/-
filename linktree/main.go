@@ -90,6 +90,37 @@ func main() {
 	mux.Handle("GET /api/settings", auth(http.HandlerFunc(handlers.GetSettings)))
 	mux.Handle("PUT /api/settings", auth(http.HandlerFunc(handlers.UpdateSettings)))
 
+	// Categories
+	mux.HandleFunc("GET /api/categories", handlers.ListCategories)
+	mux.Handle("POST /api/categories", auth(http.HandlerFunc(handlers.CreateCategory)))
+	mux.Handle("PUT /api/categories/{id}", auth(http.HandlerFunc(handlers.UpdateCategory)))
+	mux.Handle("DELETE /api/categories/{id}", auth(http.HandlerFunc(handlers.DeleteCategory)))
+
+	// Files
+	mux.HandleFunc("GET /api/files/public", handlers.ListPublicFiles)
+	mux.HandleFunc("GET /api/files/download/{id}", handlers.DownloadFile)
+	mux.Handle("GET /api/files", auth(http.HandlerFunc(handlers.ListFiles)))
+	mux.Handle("POST /api/files/upload", auth(http.HandlerFunc(handlers.UploadFile)))
+	mux.Handle("DELETE /api/files/{id}", auth(http.HandlerFunc(handlers.DeleteFile)))
+
+	// Works
+	mux.HandleFunc("GET /api/works/public", handlers.ListPublicWorks)
+	mux.Handle("GET /api/works", auth(http.HandlerFunc(handlers.ListWorks)))
+	mux.Handle("POST /api/works", auth(http.HandlerFunc(handlers.CreateWork)))
+	mux.Handle("PUT /api/works/{id}", auth(http.HandlerFunc(handlers.UpdateWork)))
+	mux.Handle("DELETE /api/works/{id}", auth(http.HandlerFunc(handlers.DeleteWork)))
+	mux.Handle("POST /api/works/{id}/media", auth(http.HandlerFunc(handlers.AddWorkMedia)))
+	mux.Handle("DELETE /api/works/media/{id}", auth(http.HandlerFunc(handlers.DeleteWorkMedia)))
+
+	// Chat
+	mux.Handle("GET /chat", auth(http.HandlerFunc(handlers.ChatPage)))
+	mux.Handle("GET /api/chat/sessions", auth(http.HandlerFunc(handlers.ListChatSessions)))
+	mux.Handle("POST /api/chat/sessions", auth(http.HandlerFunc(handlers.CreateChatSession)))
+	mux.Handle("DELETE /api/chat/sessions/{id}", auth(http.HandlerFunc(handlers.DeleteChatSession)))
+	mux.Handle("PUT /api/chat/sessions/{id}", auth(http.HandlerFunc(handlers.UpdateChatSession)))
+	mux.Handle("GET /api/chat/sessions/{id}/messages", auth(http.HandlerFunc(handlers.GetChatMessages)))
+	mux.Handle("POST /api/chat/send", auth(http.HandlerFunc(handlers.SendChatMessage)))
+
 	// Start
 	addr := ":" + port
 	fmt.Printf("LinkTree server starting on http://0.0.0.0%s\n", addr)
