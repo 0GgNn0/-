@@ -43,6 +43,15 @@ var allowedMimeTypes = map[string]bool{
 	"video/mp4":                                        true,
 	"video/webm":                                       true,
 	"video/ogg":                                        true,
+	"audio/mpeg":                                       true,
+	"audio/mp3":                                        true,
+	"audio/wav":                                        true,
+	"audio/ogg":                                        true,
+	"audio/flac":                                       true,
+	"audio/aac":                                        true,
+	"audio/mp4":                                        true,
+	"audio/x-m4a":                                      true,
+	"audio/webm":                                       true,
 	"application/octet-stream":                         true,
 }
 

@@ -110,6 +110,7 @@ func main() {
 	mux.Handle("PUT /api/works/{id}", auth(http.HandlerFunc(handlers.UpdateWork)))
 	mux.Handle("DELETE /api/works/{id}", auth(http.HandlerFunc(handlers.DeleteWork)))
 	mux.Handle("POST /api/works/{id}/media", auth(http.HandlerFunc(handlers.AddWorkMedia)))
+	mux.Handle("GET /api/works/{id}/media", auth(http.HandlerFunc(handlers.GetWorkMedia)))
 	mux.Handle("DELETE /api/works/media/{id}", auth(http.HandlerFunc(handlers.DeleteWorkMedia)))
 
 	// Chat

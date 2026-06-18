@@ -164,3 +164,20 @@ func DeleteWorkMedia(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJSON(w, map[string]interface{}{"ok": true})
 }
+
+func GetWorkMedia(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		writeJSON(w, map[string]interface{}{"ok": false, "message": "无效ID"})
+		return
+	}
+
+	media, err := models.GetWorkMedia(id)
+	if err != nil {
+		writeJSON(w, map[string]interface{}{"ok": false, "message": err.Error()})
+		return
+	}
+	writeJSON(w, media)
+}

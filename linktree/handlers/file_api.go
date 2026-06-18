@@ -96,6 +96,16 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 			mimeType = "video/webm"
 		case ".ogg":
 			mimeType = "video/ogg"
+		case ".mp3":
+			mimeType = "audio/mpeg"
+		case ".wav":
+			mimeType = "audio/wav"
+		case ".flac":
+			mimeType = "audio/flac"
+		case ".aac":
+			mimeType = "audio/aac"
+		case ".m4a":
+			mimeType = "audio/x-m4a"
 		default:
 			mimeType = "application/octet-stream"
 		}

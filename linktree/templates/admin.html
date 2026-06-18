@@ -254,6 +254,7 @@
         <select id="workContentType" style="width:100%; height:46px; padding:0 16px; border-radius:12px; border:1px solid var(--input-border); background:var(--input-bg); color:var(--text-primary); font-size:15px;">
           <option value="image">图片</option>
           <option value="video">视频</option>
+          <option value="audio">音频</option>
           <option value="mixed">混合</option>
         </select>
       </div>
@@ -294,6 +295,7 @@
         <select id="editWorkContentType" style="width:100%; height:46px; padding:0 16px; border-radius:12px; border:1px solid var(--input-border); background:var(--input-bg); color:var(--text-primary); font-size:15px;">
           <option value="image">图片</option>
           <option value="video">视频</option>
+          <option value="audio">音频</option>
           <option value="mixed">混合</option>
         </select>
       </div>
@@ -315,8 +317,17 @@
           <select id="newMediaType" style="height:36px; padding:0 8px; border-radius:8px; border:1px solid var(--input-border); background:var(--input-bg); color:var(--text-primary); font-size:14px;">
             <option value="image">图片</option>
             <option value="video">视频</option>
+            <option value="audio">音频</option>
           </select>
           <button class="btn btn-primary btn-sm" onclick="addMediaToWork()">添加</button>
+        </div>
+        <div style="display:flex; gap:8px; margin-top:8px; align-items:center;">
+          <label class="btn btn-sm" style="cursor:pointer; display:inline-flex; align-items:center; gap:4px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            上传文件到作品
+            <input type="file" id="workMediaUploadInput" multiple accept="image/*,video/*,audio/*" style="display:none;" onchange="uploadWorkMedia(this.files)">
+          </label>
+          <span id="workMediaUploadStatus" style="font-size:12px; color:var(--text-secondary);"></span>
         </div>
       </div>
       <div style="display:flex; gap:10px; margin-top:20px;">
@@ -729,14 +740,23 @@
     function renderEditWorkMedia() {
       var list = document.getElementById('editWorkMediaList');
       if (editingWorkMedia.length === 0) {
-        list.innerHTML = '<div style="color:var(--text-secondary); font-size:13px;">暂无媒体</div>';
+        list.innerHTML = '<div style="color:var(--text-secondary); font-size:13px;">暂无媒体，可通过URL添加或上传文件</div>';
         return;
       }
       var html = '';
       editingWorkMedia.forEach(function(m, i) {
+        var preview = '';
+        if (m.media_type === 'image') {
+          preview = '<img src="'+esc(m.media_url)+'" style="width:40px; height:40px; object-fit:cover; border-radius:6px; flex-shrink:0;">';
+        } else if (m.media_type === 'audio') {
+          preview = '<div style="width:40px; height:40px; border-radius:6px; background:var(--accent-muted); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>';
+        } else {
+          preview = '<div style="width:40px; height:40px; border-radius:6px; background:var(--bg-muted); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></div>';
+        }
         html += '<div style="display:flex; align-items:center; gap:8px; padding:6px 10px; background:var(--btn-bg); border-radius:8px;">' +
+          preview +
           '<span style="flex:1; font-size:13px; word-break:break-all;">'+esc(m.media_url)+'</span>' +
-          '<span style="font-size:12px; color:var(--text-secondary);">'+m.media_type+'</span>' +
+          '<span style="font-size:12px; color:var(--text-secondary); padding:2px 8px; background:var(--bg-muted); border-radius:4px;">'+m.media_type+'</span>' +
           '<button class="del-btn" onclick="removeEditMedia('+i+')">移除</button>' +
         '</div>';
       });
@@ -757,6 +777,49 @@
       renderEditWorkMedia();
     }
 
+    function uploadWorkMedia(fileList) {
+      if (!fileList || fileList.length === 0) return;
+      var statusEl = document.getElementById('workMediaUploadStatus');
+      var total = fileList.length;
+      var done = 0;
+      statusEl.textContent = '上传中 0/' + total + '...';
+
+      for (var i = 0; i < fileList.length; i++) {
+        (function(file) {
+          var formData = new FormData();
+          formData.append('file', file);
+          formData.append('is_public', '1');
+
+          apiUpload('/api/files/upload', formData).then(function(data) {
+            done++;
+            if (data.ok && data.file) {
+              var mediaType = 'image';
+              var mime = data.file.mime_type || '';
+              if (mime.startsWith('video/')) mediaType = 'video';
+              else if (mime.startsWith('audio/')) mediaType = 'audio';
+              var mediaUrl = '/api/files/download/' + data.file.id;
+              editingWorkMedia.push({ media_url: mediaUrl, media_type: mediaType, file_id: data.file.id });
+              renderEditWorkMedia();
+            }
+            statusEl.textContent = '上传中 ' + done + '/' + total + '...';
+            if (done === total) {
+              statusEl.textContent = '上传完成';
+              document.getElementById('workMediaUploadInput').value = '';
+              setTimeout(function() { statusEl.textContent = ''; }, 3000);
+            }
+          }).catch(function() {
+            done++;
+            statusEl.textContent = '上传中 ' + done + '/' + total + '...';
+            if (done === total) {
+              statusEl.textContent = '上传完成（部分失败）';
+              document.getElementById('workMediaUploadInput').value = '';
+              setTimeout(function() { statusEl.textContent = ''; }, 3000);
+            }
+          });
+        })(fileList[i]);
+      }
+    }
+
     function saveWorkEdit() {
       var id = document.getElementById('editWorkId').value;
       var title = document.getElementById('editWorkTitle').value.trim();
@@ -771,8 +834,30 @@
       };
       api('/api/works/' + id, 'PUT', body).then(function(data) {
         if (data.ok) {
-          showToast('作品已更新');
-          loadWorks();
+          // Sync media: get existing media from server, then add/remove as needed
+          api('/api/works/' + id + '/media', 'GET').then(function(existingMedia) {
+            var toAdd = editingWorkMedia.filter(function(m) { return !m.id; });
+            var existingIds = (existingMedia || []).map(function(m) { return m.id; });
+            var editedIds = editingWorkMedia.filter(function(m) { return m.id; }).map(function(m) { return m.id; });
+            var toRemove = existingIds.filter(function(eid) { return editedIds.indexOf(eid) === -1; });
+
+            var promises = [];
+            toAdd.forEach(function(m) {
+              promises.push(api('/api/works/' + id + '/media', 'POST', {
+                file_id: m.file_id || null,
+                media_url: m.media_url,
+                media_type: m.media_type
+              }));
+            });
+            toRemove.forEach(function(mid) {
+              promises.push(api('/api/works/media/' + mid, 'DELETE'));
+            });
+
+            Promise.all(promises).then(function() {
+              showToast('作品已更新');
+              loadWorks();
+            });
+          });
         } else {
           showToast('更新失败: ' + (data.message || ''));
         }

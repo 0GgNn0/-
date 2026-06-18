@@ -57,7 +57,7 @@ func InitDB(dbPath string) error {
 			title        TEXT NOT NULL,
 			description  TEXT DEFAULT '',
 			cover_url    TEXT DEFAULT '',
-			content_type TEXT NOT NULL CHECK(content_type IN ('image', 'video', 'mixed')),
+			content_type TEXT NOT NULL CHECK(content_type IN ('image', 'video', 'audio', 'mixed')),
 			external_url TEXT DEFAULT '',
 			sort_order   REAL NOT NULL DEFAULT 0,
 			created_at   TEXT DEFAULT (datetime('now','localtime')),
@@ -68,7 +68,7 @@ func InitDB(dbPath string) error {
 			work_id    INTEGER NOT NULL,
 			file_id    INTEGER,
 			media_url  TEXT NOT NULL,
-			media_type TEXT NOT NULL CHECK(media_type IN ('image', 'video')),
+			media_type TEXT NOT NULL CHECK(media_type IN ('image', 'video', 'audio')),
 			sort_order REAL NOT NULL DEFAULT 0,
 			FOREIGN KEY (work_id) REFERENCES works(id) ON DELETE CASCADE,
 			FOREIGN KEY (file_id) REFERENCES files(id) ON DELETE SET NULL
@@ -89,5 +89,67 @@ func InitDB(dbPath string) error {
 			FOREIGN KEY (session_id) REFERENCES chat_sessions(id) ON DELETE CASCADE
 		);
 	`)
-	return err
+	if err != nil {
+		return err
+	}
+
+	// Migrate: add 'audio' to works.content_type and work_media.media_type CHECK constraints
+	migrateCheckConstraints()
+
+	return nil
+}
+
+func migrateCheckConstraints() {
+	// Check if works table has old CHECK constraint (without 'audio')
+	var ck string
+	err := DB.QueryRow("SELECT sql FROM sqlite_master WHERE type='table' AND name='works'").Scan(&ck)
+	if err == nil && !containsAudio(ck) {
+		// Recreate works table with updated CHECK
+		DB.Exec("ALTER TABLE works RENAME TO works_old")
+		DB.Exec(`CREATE TABLE works (
+			id           INTEGER PRIMARY KEY AUTOINCREMENT,
+			category_id  INTEGER,
+			title        TEXT NOT NULL,
+			description  TEXT DEFAULT '',
+			cover_url    TEXT DEFAULT '',
+			content_type TEXT NOT NULL CHECK(content_type IN ('image', 'video', 'audio', 'mixed')),
+			external_url TEXT DEFAULT '',
+			sort_order   REAL NOT NULL DEFAULT 0,
+			created_at   TEXT DEFAULT (datetime('now','localtime')),
+			FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
+		)`)
+		DB.Exec("INSERT INTO works SELECT * FROM works_old")
+		DB.Exec("DROP TABLE works_old")
+	}
+
+	// Check work_media table
+	err = DB.QueryRow("SELECT sql FROM sqlite_master WHERE type='table' AND name='work_media'").Scan(&ck)
+	if err == nil && !containsAudio(ck) {
+		DB.Exec("ALTER TABLE work_media RENAME TO work_media_old")
+		DB.Exec(`CREATE TABLE work_media (
+			id         INTEGER PRIMARY KEY AUTOINCREMENT,
+			work_id    INTEGER NOT NULL,
+			file_id    INTEGER,
+			media_url  TEXT NOT NULL,
+			media_type TEXT NOT NULL CHECK(media_type IN ('image', 'video', 'audio')),
+			sort_order REAL NOT NULL DEFAULT 0,
+			FOREIGN KEY (work_id) REFERENCES works(id) ON DELETE CASCADE,
+			FOREIGN KEY (file_id) REFERENCES files(id) ON DELETE SET NULL
+		)`)
+		DB.Exec("INSERT INTO work_media SELECT * FROM work_media_old")
+		DB.Exec("DROP TABLE work_media_old")
+	}
+}
+
+func containsAudio(s string) bool {
+	return len(s) > 0 && (contains(s, "'audio'") || contains(s, "\"audio\""))
+}
+
+func contains(s, sub string) bool {
+	for i := 0; i+len(sub) <= len(s); i++ {
+		if s[i:i+len(sub)] == sub {
+			return true
+		}
+	}
+	return false
 }
