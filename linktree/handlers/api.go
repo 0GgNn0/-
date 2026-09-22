@@ -2,9 +2,12 @@ package handlers
 
 import (
 	"encoding/json"
+	"net"
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
 
 	"linktree/models"
 
@@ -24,6 +27,52 @@ func writeJSON(w http.ResponseWriter, data interface{}) {
 
 // ---- Auth handlers ----
 
+// 登录限流：按 IP 滑动窗口，1 分钟内最多 5 次失败尝试
+var (
+	loginAttempts   = map[string][]time.Time{}
+	loginAttemptsMu sync.Mutex
+)
+
+const (
+	loginWindow    = time.Minute
+	loginMaxTries  = 5
+)
+
+func isLoginAllowed(ip string) bool {
+	loginAttemptsMu.Lock()
+	defer loginAttemptsMu.Unlock()
+	now := time.Now()
+	// 清理过期记录
+	var recent []time.Time
+	for _, t := range loginAttempts[ip] {
+		if now.Sub(t) < loginWindow {
+			recent = append(recent, t)
+		}
+	}
+	loginAttempts[ip] = recent
+	return len(recent) < loginMaxTries
+}
+
+func recordLoginFailure(ip string) {
+	loginAttemptsMu.Lock()
+	defer loginAttemptsMu.Unlock()
+	loginAttempts[ip] = append(loginAttempts[ip], time.Now())
+}
+
+func clientIP(r *http.Request) string {
+	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
+		if i := strings.Index(xff, ","); i > 0 {
+			return strings.TrimSpace(xff[:i])
+		}
+		return strings.TrimSpace(xff)
+	}
+	host, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		return r.RemoteAddr
+	}
+	return host
+}
+
 func Login(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Password string `json:"password"`
@@ -34,7 +83,15 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ip := clientIP(r)
+	if !isLoginAllowed(ip) {
+		w.WriteHeader(http.StatusTooManyRequests)
+		writeJSON(w, map[string]interface{}{"ok": false, "message": "尝试过于频繁，请 1 分钟后再试"})
+		return
+	}
+
 	if !models.VerifyPassword(body.Password) {
+		recordLoginFailure(ip)
 		w.WriteHeader(http.StatusUnauthorized)
 		writeJSON(w, map[string]interface{}{"ok": false, "message": "密码错误"})
 		return

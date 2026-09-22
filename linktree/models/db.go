@@ -10,13 +10,17 @@ var DB *sql.DB
 
 func InitDB(dbPath string) error {
 	var err error
-	DB, err = sql.Open("sqlite", dbPath)
+	// DSN 级 PRAGMA：对连接池中每条新连接生效（busy_timeout/foreign_keys 是连接级设置）
+	dsn := dbPath + "?_pragma=busy_timeout(5000)&_pragma=foreign_keys(1)&_pragma=journal_mode(WAL)&_pragma=synchronous(NORMAL)"
+	DB, err = sql.Open("sqlite", dsn)
 	if err != nil {
 		return err
 	}
 
+	// SQLite 单写者：限制连接数避免 SQLITE_BUSY；WAL 下读写仍可并行
+	DB.SetMaxOpenConns(1)
+
 	DB.Exec("PRAGMA journal_mode=WAL")
-	DB.Exec("PRAGMA foreign_keys=ON")
 
 	_, err = DB.Exec(`
 		CREATE TABLE IF NOT EXISTS links (
@@ -88,8 +92,27 @@ func InitDB(dbPath string) error {
 			created_at TEXT DEFAULT (datetime('now','localtime')),
 			FOREIGN KEY (session_id) REFERENCES chat_sessions(id) ON DELETE CASCADE
 		);
+		CREATE TABLE IF NOT EXISTS experiences (
+			id          INTEGER PRIMARY KEY AUTOINCREMENT,
+			period      TEXT NOT NULL,
+			title       TEXT NOT NULL,
+			description TEXT DEFAULT '',
+			sort_order  REAL NOT NULL DEFAULT 0,
+			created_at  TEXT DEFAULT (datetime('now','localtime'))
+		);
 	`)
 	if err != nil {
+		return err
+	}
+
+	// 外键索引（SQLite 不自动为 FK 建索引）
+	if _, err = DB.Exec(`
+		CREATE INDEX IF NOT EXISTS idx_chat_messages_session ON chat_messages(session_id, id);
+		CREATE INDEX IF NOT EXISTS idx_work_media_work ON work_media(work_id, sort_order);
+		CREATE INDEX IF NOT EXISTS idx_work_media_file ON work_media(file_id);
+		CREATE INDEX IF NOT EXISTS idx_files_category ON files(category_id);
+		CREATE INDEX IF NOT EXISTS idx_works_category ON works(category_id);
+	`); err != nil {
 		return err
 	}
 

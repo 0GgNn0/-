@@ -3,16 +3,74 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="{{.DisplayName}} - 个人链接聚合页">
+  <meta name="description" content="{{.DisplayName}} - 全栈 / AI 开发者">
   <title>{{.DisplayName}}</title>
   <link rel="icon" type="image/jpeg" href="/static/avatar.jpg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/style.css">
+  <style>
+    /* ===== 极简首页 ===== */
+    .home-wrap { min-height: 100dvh; position: relative; z-index: 1; display: flex; flex-direction: column; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; padding: 28px 40px; }
+    .topbar-name { font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; font-weight: 600; letter-spacing: 0.06em; color: var(--text); text-decoration: none; text-transform: uppercase; }
+    .topnav { display: flex; gap: 4px; align-items: center; }
+    .topnav a { padding: 8px 16px; border-radius: 999px; font-size: 13px; color: var(--text-secondary); text-decoration: none; transition: var(--transition); }
+    .topnav a:hover { color: var(--text); background: var(--bg-muted); }
+
+    .hero { flex: 1; display: flex; flex-direction: column; justify-content: center; max-width: 860px; margin: 0 auto; padding: 48px 40px 80px; width: 100%; }
+    .hero-status { margin-bottom: 28px; }
+    .hero-avatar { width: 76px; height: 76px; border-radius: 22px; object-fit: cover; border: 1px solid var(--border); margin-bottom: 28px; box-shadow: 0 8px 24px -8px rgba(0,0,0,0.18); }
+    .hero-name { font-size: clamp(48px, 9vw, 92px); font-weight: 800; letter-spacing: -0.045em; color: var(--text); line-height: 0.98; margin: 0; text-wrap: balance; }
+    .hero-name .accent { color: var(--accent); }
+    .hero-title { font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin-top: 18px; }
+    .hero-bio { font-size: 17px; color: var(--text-secondary); line-height: 1.75; margin-top: 18px; max-width: 540px; text-wrap: pretty; }
+    .hero-skills { font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; color: var(--text-tertiary); margin-top: 26px; letter-spacing: 0.02em; }
+    .hero-skills span { white-space: nowrap; }
+    .hero-skills .sep { color: var(--accent); margin: 0 10px; opacity: 0.7; }
+    .hero-actions { display: flex; align-items: center; gap: 20px; margin-top: 36px; flex-wrap: wrap; }
+    .btn-primary-lg { display: inline-flex; align-items: center; gap: 8px; height: 46px; padding: 0 26px; border-radius: 999px; background: var(--accent); color: #fff; font-size: 14px; font-weight: 600; text-decoration: none; transition: var(--transition); }
+    .btn-primary-lg:hover { transform: translateY(-2px); box-shadow: 0 12px 28px -8px rgba(16,185,129,0.45); }
+    .btn-primary-lg:active { transform: translateY(0) scale(0.98); }
+    .btn-text { display: inline-flex; align-items: center; gap: 6px; height: 46px; font-size: 14px; font-weight: 500; color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border); transition: var(--transition); }
+    .btn-text:hover { color: var(--accent); border-color: var(--accent); }
+
+    /* 精选作品 */
+    .featured-section { max-width: 860px; margin: 0 auto; padding: 0 40px 64px; width: 100%; }
+    .featured-label { font-family: 'Geist Mono', ui-monospace, monospace; font-size: 11px; font-weight: 500; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+    .featured-label a { color: var(--accent); text-decoration: none; font-weight: 500; text-transform: none; letter-spacing: 0; font-size: 13px; display: inline-flex; align-items: center; gap: 4px; }
+    .featured-grid { display: grid; grid-template-columns: 1.12fr 1fr; gap: 16px; align-items: start; }
+    .featured-card { display: block; border: 1px solid var(--border); border-radius: var(--radius); background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); overflow: hidden; text-decoration: none; transition: var(--transition); }
+    [data-theme="dark"] .featured-card { background: rgba(24,24,27,0.85); }
+    .featured-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); border-color: rgba(16,185,129,0.4); }
+    .featured-card-cover { width: 100%; height: 170px; object-fit: contain; display: block; background: var(--bg-muted); transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+    .featured-card:hover .featured-card-cover { transform: scale(1.03); }
+    .featured-card-cover.ph { display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--accent-muted), var(--bg-muted)); color: var(--accent); }
+    .featured-card-cover.ph svg { width: 32px; height: 32px; }
+    .featured-card-body { padding: 18px; }
+    .featured-card-idx { font-family: 'Geist Mono', ui-monospace, monospace; font-size: 11px; color: var(--accent); letter-spacing: 0.1em; margin-bottom: 6px; }
+    .featured-card-title { font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
+    .featured-card-desc { font-size: 13px; color: var(--text-secondary); margin-top: 6px; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+    .home-footer { padding: 28px 40px; display: flex; justify-content: center; align-items: center; gap: 24px; font-family: 'Geist Mono', ui-monospace, monospace; }
+    .home-footer a { font-size: 12px; color: var(--text-tertiary); text-decoration: none; letter-spacing: 0.04em; }
+    .home-footer a:hover { color: var(--accent); }
+    .home-footer .copy { font-size: 12px; color: var(--text-tertiary); opacity: 0.7; }
+
+    @media (max-width: 768px) {
+      .topbar { padding: 20px 24px; }
+      .hero { padding: 32px 24px 64px; }
+      .hero-name { font-size: clamp(40px, 12vw, 56px); }
+      .featured-section { padding: 0 24px 48px; }
+      .featured-grid { grid-template-columns: 1fr; }
+      .topnav a { padding: 6px 10px; font-size: 12px; }
+      .hero-skills { font-size: 12px; }
+      .hero-skills .sep { margin: 0 7px; }
+    }
+  </style>
 </head>
 <body data-theme="{{.Theme}}">
-
-  <!-- 主题切换 -->
   <button class="theme-toggle" id="themeToggle" title="切换主题" aria-label="切换暗色/亮色模式">
     <span class="theme-icon" id="themeIcon">
       <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
@@ -20,319 +78,67 @@
     </span>
   </button>
 
-  <!-- Bento 2.0 主布局 -->
   <div class="home-wrap">
-    <div class="bento">
+    <header class="topbar">
+      <a href="/" class="topbar-name">{{.DisplayName}}</a>
+      <nav class="topnav">
+        <a href="/works">作品</a>
+        <a href="/about">关于</a>
+        <a href="/experience">经历</a>
+        <a href="/ask">问 AI</a>
+        <a href="/contact">联系</a>
+      </nav>
+    </header>
 
-      <!-- Row 1: 个人资料 / 时钟 / 天气 -->
-      <div class="tile tile-profile" style="grid-column: span 5;">
-        <div class="avatar-wrap" id="avatarWrap" style="cursor:pointer">
-          <img src="/static/avatar.jpg" alt="{{.DisplayName}}" class="profile-avatar">
-        </div>
-        <div class="profile-info">
-          <div class="profile-name">{{.DisplayName}}</div>
-          {{if .Bio}}<div class="profile-bio">{{.Bio}}</div>{{end}}
-        </div>
-        <div class="profile-actions">
-          <a href="/chat" class="profile-action-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            对话
-          </a>
-          <a href="/admin/login" class="profile-action-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            管理
-          </a>
-        </div>
+    <main class="hero">
+      <div class="hero-status reveal" style="--d:0s">
+        <span class="status-badge"><span class="dot"></span>Open to Work · 可实习 / 全职</span>
       </div>
-
-      <div class="tile tile-clock" id="clockWidget" style="grid-column: span 4; cursor:pointer;">
-        <div class="clock-value" id="clockTime">--:--</div>
-        <div class="clock-date" id="clockDate">----/--/--</div>
+      <img src="/static/avatar.jpg" alt="{{.DisplayName}}" class="hero-avatar reveal" style="--d:.08s">
+      <h1 class="hero-name reveal" style="--d:.16s">{{.DisplayName}}<span class="accent">.</span></h1>
+      <div class="hero-title reveal" style="--d:.24s">Full-Stack / AI Developer</div>
+      <p class="hero-bio reveal" style="--d:.32s">{{if .Bio}}{{.Bio}}。{{end}}用代码把想法变成产品 · 全栈开发 · AI 应用实践者</p>
+      <div class="hero-skills reveal" style="--d:.40s">
+        <span>Go</span><span class="sep">/</span><span>Python</span><span class="sep">/</span><span>TypeScript</span><span class="sep">/</span><span>React</span><span class="sep">/</span><span>Vue</span><span class="sep">/</span><span>LLM · AI</span><span class="sep">/</span><span>Docker</span><span class="sep">/</span><span>SQL</span>
       </div>
-
-      <div class="tile tile-weather" id="weatherWidget" style="grid-column: span 3; cursor:pointer;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="weather-svg-icon"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-        <div class="weather-val" id="weatherTemp">--°C</div>
-        <div class="weather-label" id="weatherDesc">加载中...</div>
+      <div class="hero-actions reveal" style="--d:.48s">
+        <a href="/ask" class="btn-primary-lg">💬 问 AI 关于我</a>
+        <a href="/works" class="btn-text arrow-link">查看作品 <span class="arr">→</span></a>
       </div>
+    </main>
 
-      <!-- Row 2: 链接 / 日历 -->
-      <div class="tile tile-links" style="grid-column: span 7;">
-        <div class="tile-label">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-          链接
-        </div>
-        <div class="links-stack">
-          {{range .Links}}
-          <a class="link-item" href="{{.URL}}" target="_blank" rel="noopener noreferrer">
-            <div class="link-icon-box">
-              {{if .Icon}}{{.Icon}}{{else}}
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-              {{end}}
-            </div>
-            <div class="link-text">
-              <div class="link-title">{{.Title}}</div>
-              <div class="link-url">{{.URL}}</div>
-            </div>
-            <div class="link-arrow">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
-            </div>
-          </a>
+    {{if .Works}}
+    <section class="featured-section reveal" style="--d:.56s">
+      <div class="featured-label">Selected Works · 精选作品 <a href="/works" class="arrow-link">全部作品 <span class="arr">→</span></a></div>
+      <div class="featured-grid">
+        {{range $i, $w := .Works}}
+        {{if lt $i 2}}
+        <a href="/work/{{$w.ID}}" class="featured-card spot" data-spot>
+          {{if $w.CoverURL}}
+          <img src="{{$w.CoverURL}}" alt="{{$w.Title}}" class="featured-card-cover">
+          {{else if $w.Media}}
+          {{range $mi, $m := $w.Media}}{{if and (eq $mi 0) (eq $m.MediaType "image")}}<img src="{{$m.MediaURL}}" alt="{{$w.Title}}" class="featured-card-cover">{{end}}{{end}}
+          {{else}}
+          <div class="featured-card-cover ph"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
           {{end}}
-        </div>
-      </div>
-
-      <div class="tile tile-calendar" id="calendarWidget" style="grid-column: span 5; cursor:pointer;">
-        <div class="cal-day" id="calendarDay">--</div>
-        <div class="cal-info">
-          <span class="cal-month" id="calendarMonth">--月</span>
-          <span class="cal-weekday" id="calendarWeekday">星期-</span>
-        </div>
-      </div>
-
-      <!-- Row 3: 作品 / 文件 -->
-      <div class="tile tile-works" style="grid-column: span 8;">
-        <div class="tile-label">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          作品
-        </div>
-        {{if .Works}}
-        <div class="works-content">
-          {{range $i, $w := .Works}}
-          {{if eq $i 0}}
-          <div class="works-featured" onclick="openWorkModal({{$w.ID}})">
-            {{if $w.CoverURL}}
-            <img src="{{$w.CoverURL}}" alt="{{$w.Title}}" class="works-featured-cover">
-            {{else}}
-            <div class="works-featured-placeholder">
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            </div>
-            {{end}}
-            <div class="works-featured-info">
-              <div class="works-featured-title">{{$w.Title}}</div>
-              {{if $w.Description}}<div class="works-featured-desc">{{$w.Description}}</div>{{end}}
-            </div>
+          <div class="featured-card-body">
+            <div class="featured-card-idx">0{{$w.ID}} {{if $w.CategoryName}}· {{$w.CategoryName}}{{end}}</div>
+            <div class="featured-card-title">{{$w.Title}}</div>
+            {{if $w.Description}}<div class="featured-card-desc">{{$w.Description}}</div>{{end}}
           </div>
-          {{end}}
-          {{end}}
-          <div class="works-grid">
-            {{range $i, $w := .Works}}
-            {{if gt $i 0}}
-            <div class="work-card" onclick="openWorkModal({{$w.ID}})">
-              {{if $w.CoverURL}}
-              <img src="{{$w.CoverURL}}" alt="{{$w.Title}}" class="work-card-cover">
-              {{else}}
-              <div class="work-card-placeholder">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-              </div>
-              {{end}}
-              <div class="work-card-title">{{$w.Title}}</div>
-              {{if $w.Description}}<div class="work-card-desc">{{$w.Description}}</div>{{end}}
-            </div>
-            {{end}}
-            {{end}}
-          </div>
-        </div>
-        {{else}}
-        <div class="empty-state">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          <span>暂无作品，等待添加</span>
-        </div>
+        </a>
+        {{end}}
         {{end}}
       </div>
+    </section>
+    {{end}}
 
-      <div class="tile tile-files" style="grid-column: span 4;">
-        <div class="tile-label">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
-          文件
-        </div>
-        {{if .Files}}
-        <div class="files-stack">
-          {{range .Files}}
-          <a class="file-card" href="/api/files/download/{{.ID}}" target="_blank">
-            <div class="file-icon-box">
-              {{if eq .MimeType "image/jpeg"}}<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-              {{else if eq .MimeType "image/png"}}<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-              {{else if eq .MimeType "image/gif"}}<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-              {{else if eq .MimeType "application/pdf"}}<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-              {{else if eq .MimeType "video/mp4"}}<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-              {{else if eq .MimeType "video/webm"}}<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-              {{else if eq .MimeType "audio/mpeg"}}<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-              {{else if eq .MimeType "audio/wav"}}<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-              {{else if eq .MimeType "audio/flac"}}<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-              {{else if eq .MimeType "audio/aac"}}<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-              {{else if eq .MimeType "application/zip"}}<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>
-              {{else if eq .MimeType "application/x-rar-compressed"}}<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>
-              {{else}}<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
-              {{end}}
-            </div>
-            <div class="file-text">
-              <div class="file-name">{{.OriginalName}}</div>
-              <div class="file-meta">{{.MimeType}}</div>
-            </div>
-            <div class="file-size">{{.FormattedSize}}</div>
-            <div class="file-dl">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            </div>
-          </a>
-          {{end}}
-        </div>
-        {{else}}
-        <div class="empty-state">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
-          <span>暂无文件，等待上传</span>
-        </div>
-        {{end}}
-      </div>
-
-      <!-- Row 4: 页脚 -->
-      <div class="home-footer" style="grid-column: span 12;">
-        <a href="/chat" class="footer-link">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          AI 对话
-        </a>
-        <a href="/admin/login" class="footer-link">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-          管理后台
-        </a>
-      </div>
-
-    </div>
+    <footer class="home-footer">
+      <a href="/ask">问 AI 关于我</a>
+      <a href="/admin/login">管理后台</a>
+      <span class="copy">© 2026 {{.DisplayName}}</span>
+    </footer>
   </div>
-
-  <!-- 头像弹窗 -->
-  <div class="avatar-modal" id="avatarModal">
-    <img src="/static/avatar.jpg" alt="{{.DisplayName}}">
-    <button class="modal-close" id="modalClose">&times;</button>
-  </div>
-
-  <!-- 时钟弹窗 -->
-  <div class="modal" id="clockModal">
-    <div class="modal-content clock-modal-content">
-      <button class="modal-close" id="clockModalClose">&times;</button>
-      <div class="clock-modal-title">当前时间</div>
-      <canvas id="clockCanvas" width="280" height="280"></canvas>
-      <div class="clock-digital" id="clockDigital">--:--:--</div>
-      <div class="clock-date-detail" id="clockDateDetail">----年--月--日</div>
-    </div>
-  </div>
-
-  <!-- 日历弹窗 -->
-  <div class="modal" id="calendarModal">
-    <div class="modal-content calendar-modal-content">
-      <button class="modal-close" id="calendarModalClose">&times;</button>
-      <div class="calendar-header">
-        <button class="cal-nav" id="calPrev">&lt;</button>
-        <span class="cal-title" id="calTitle">2026年6月</span>
-        <button class="cal-nav" id="calNext">&gt;</button>
-      </div>
-      <div class="calendar-weekdays">
-        <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
-      </div>
-      <div class="calendar-grid" id="calendarGrid"></div>
-    </div>
-  </div>
-
-  <!-- 天气弹窗 -->
-  <div class="modal" id="weatherModal">
-    <div class="modal-content weather-modal-content">
-      <button class="modal-close" id="weatherModalClose">&times;</button>
-      <div class="weather-detail-header">
-        <div class="weather-detail-icon" id="weatherDetailIcon">&#x1F324;&#xFE0F;</div>
-        <div class="weather-detail-temp" id="weatherDetailTemp">--°C</div>
-        <div class="weather-detail-desc" id="weatherDetailDesc">加载中...</div>
-      </div>
-      <div class="weather-info-grid">
-        <div class="info-item"><span class="info-label">体感温度</span><span class="info-value" id="feelsLike">--°C</span></div>
-        <div class="info-item"><span class="info-label">湿度</span><span class="info-value" id="humidity">--%</span></div>
-        <div class="info-item"><span class="info-label">风速</span><span class="info-value" id="windSpeed">-- km/h</span></div>
-        <div class="info-item"><span class="info-label">能见度</span><span class="info-value" id="visibility">-- km</span></div>
-        <div class="info-item"><span class="info-label">气压</span><span class="info-value" id="pressure">-- hPa</span></div>
-        <div class="info-item"><span class="info-label">紫外线</span><span class="info-value" id="uvIndex">--</span></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 作品详情弹窗 -->
-  <div class="modal" id="workDetailModal">
-    <div class="modal-content work-detail-content">
-      <button class="modal-close" onclick="closeWorkModal()">&times;</button>
-      <div id="workDetailBody"></div>
-    </div>
-  </div>
-
-  <script>
-    // 作品数据
-    var publicWorks = {{.Works}};
-
-    function openWorkModal(workId) {
-      var work = publicWorks.find(function(w) { return w.id === workId; });
-      if (!work) return;
-      var body = document.getElementById('workDetailBody');
-      var html = '';
-      if (work.cover_url) {
-        html += '<img src="' + work.cover_url + '" alt="' + work.title + '" style="width:100%; border-radius:16px; margin-bottom:16px;">';
-      }
-      html += '<h2 style="font-size:20px; font-weight:700; color:var(--text-primary); margin-bottom:8px;">' + work.title + '</h2>';
-      if (work.description) {
-        html += '<p style="color:var(--text-secondary); font-size:14px; line-height:1.6; margin-bottom:16px;">' + work.description + '</p>';
-      }
-      if (work.media && work.media.length > 0) {
-        html += '<div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;">';
-        work.media.forEach(function(m) {
-          if (m.media_type === 'image') {
-            html += '<img src="' + m.media_url + '" style="max-width:100%; border-radius:12px; cursor:pointer;" onclick="window.open(\'' + m.media_url + '\', \'_blank\')">';
-          } else if (m.media_type === 'video') {
-            html += '<video src="' + m.media_url + '" controls style="max-width:100%; border-radius:12px;"></video>';
-          } else if (m.media_type === 'audio') {
-            html += '<div style="width:100%; padding:12px 16px; background:var(--accent-muted); border-radius:12px; display:flex; align-items:center; gap:12px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg><audio src="' + m.media_url + '" controls style="flex:1; height:36px; border-radius:8px;"></audio></div>';
-          }
-        });
-        html += '</div>';
-      }
-      if (work.external_url) {
-        html += '<a href="' + work.external_url + '" target="_blank" class="link-btn" style="margin-top:16px; display:flex; text-decoration:none;">🔗 查看详情</a>';
-      }
-      body.innerHTML = html;
-      document.getElementById('workDetailModal').classList.add('active');
-    }
-
-    function closeWorkModal() {
-      document.getElementById('workDetailModal').classList.remove('active');
-    }
-  </script>
-
-  <script>
-    // 头像弹窗
-    (function() {
-      var avatarWrap = document.getElementById('avatarWrap');
-      var modal = document.getElementById('avatarModal');
-      var closeBtn = document.getElementById('modalClose');
-
-      avatarWrap.addEventListener('click', function() {
-        modal.classList.add('active');
-      });
-
-      closeBtn.addEventListener('click', function() {
-        modal.classList.remove('active');
-      });
-
-      modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
-          modal.classList.remove('active');
-        }
-      });
-
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-          document.querySelectorAll('.modal, .avatar-modal').forEach(function(m) {
-            m.classList.remove('active');
-          });
-          if (window.stopClockAnimation) window.stopClockAnimation();
-        }
-      });
-    })();
-  </script>
 
   <script>
     // 主题切换
@@ -341,375 +147,31 @@
       var toggle = document.getElementById('themeToggle');
       var iconContainer = document.getElementById('themeIcon');
       var storedTheme = localStorage.getItem('linktree-theme') || 'auto';
-
-      function getSystemTheme() {
-        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      }
-
-      function getEffectiveTheme() {
-        if (storedTheme === 'auto') {
-          return getSystemTheme();
-        }
-        return storedTheme;
-      }
-
+      function getSystemTheme() { return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
+      function getEffectiveTheme() { return storedTheme === 'auto' ? getSystemTheme() : storedTheme; }
       function applyTheme(theme) {
         html.setAttribute('data-theme', theme);
-        if (theme === 'dark') {
-          iconContainer.classList.add('is-dark');
-        } else {
-          iconContainer.classList.remove('is-dark');
-        }
+        document.body.setAttribute('data-theme', theme);
+        if (theme === 'dark') { iconContainer.classList.add('is-dark'); } else { iconContainer.classList.remove('is-dark'); }
         localStorage.setItem('linktree-theme', theme);
-        document.body.style.animation = 'none';
-        document.body.offsetHeight;
-        document.body.style.animation = '';
       }
-
       applyTheme(getEffectiveTheme());
-
       toggle.addEventListener('click', function() {
-        var current = html.getAttribute('data-theme');
-        var next = current === 'dark' ? 'light' : 'dark';
-        applyTheme(next);
+        applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
       });
-
       window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
-        if (localStorage.getItem('linktree-theme') === 'auto') {
-          applyTheme(getSystemTheme());
-        }
+        if (localStorage.getItem('linktree-theme') === 'auto') applyTheme(getSystemTheme());
       });
     })();
-  </script>
 
-  <script>
-    // 3D 倾斜效果 - 链接项
-    (function() {
-      var items = document.querySelectorAll('.link-item');
-      items.forEach(function(item) {
-        item.addEventListener('mousemove', function(e) {
-          item.style.transition = 'none';
-          var rect = item.getBoundingClientRect();
-          var x = e.clientX - rect.left;
-          var y = e.clientY - rect.top;
-          var centerX = rect.width / 2;
-          var centerY = rect.height / 2;
-          var rotateX = (y - centerY) / 10;
-          var rotateY = (centerX - x) / 10;
-          item.style.transform = 'perspective(1000px) rotateX(' + rotateX + 'deg) rotateY(' + rotateY + 'deg) scale(1.02)';
-        });
-        item.addEventListener('mouseleave', function() {
-          item.style.transition = '';
-          item.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
-        });
-        item.addEventListener('mousedown', function() {
-          item.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(0.98)';
-        });
-        item.addEventListener('mouseup', function() {
-          item.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
-        });
+    // 聚光边框：记录光标位置
+    document.querySelectorAll('[data-spot]').forEach(function(el) {
+      el.addEventListener('mousemove', function(e) {
+        var r = el.getBoundingClientRect();
+        el.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+        el.style.setProperty('--my', (e.clientY - r.top) + 'px');
       });
-    })();
-  </script>
-
-  <script>
-    // 时钟组件
-    (function() {
-      var timeEl = document.getElementById('clockTime');
-      var dateEl = document.getElementById('clockDate');
-      var clockWidget = document.getElementById('clockWidget');
-      var clockModal = document.getElementById('clockModal');
-      var clockModalClose = document.getElementById('clockModalClose');
-      var clockDigital = document.getElementById('clockDigital');
-      var clockDateDetail = document.getElementById('clockDateDetail');
-      var canvas = document.getElementById('clockCanvas');
-      var ctx = canvas.getContext('2d');
-      var clockAnimId = null;
-
-      function updateClock() {
-        var now = new Date();
-        timeEl.textContent = pad(now.getHours()) + ':' + pad(now.getMinutes());
-        dateEl.textContent = now.getFullYear() + '/' + pad(now.getMonth() + 1) + '/' + pad(now.getDate());
-      }
-
-      function pad(n) { return n < 10 ? '0' + n : '' + n; }
-
-      function drawClock() {
-        var now = new Date();
-        var w = canvas.width, h = canvas.height;
-        var cx = w / 2, cy = h / 2;
-        var r = Math.min(cx, cy) - 10;
-        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-
-        ctx.clearRect(0, 0, w, h);
-
-        ctx.beginPath();
-        ctx.arc(cx, cy, r, 0, Math.PI * 2);
-        ctx.fillStyle = isDark ? 'rgba(40,40,70,0.95)' : 'rgba(255,255,255,0.95)';
-        ctx.fill();
-        ctx.strokeStyle = isDark ? 'rgba(100,181,246,0.3)' : 'rgba(79,172,254,0.3)';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        for (var i = 0; i < 60; i++) {
-          var angle = (i * 6 - 90) * Math.PI / 180;
-          var isHour = i % 5 === 0;
-          var innerR = isHour ? r - 18 : r - 10;
-          var outerR = r - 4;
-          ctx.beginPath();
-          ctx.moveTo(cx + innerR * Math.cos(angle), cy + innerR * Math.sin(angle));
-          ctx.lineTo(cx + outerR * Math.cos(angle), cy + outerR * Math.sin(angle));
-          ctx.strokeStyle = isHour ? (isDark ? '#64b5f6' : '#4facfe') : (isDark ? 'rgba(100,181,246,0.25)' : 'rgba(79,172,254,0.25)');
-          ctx.lineWidth = isHour ? 2.5 : 1;
-          ctx.stroke();
-        }
-
-        ctx.font = 'bold 16px -apple-system, sans-serif';
-        ctx.fillStyle = isDark ? '#e8ecf4' : '#2d3748';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        for (var i = 1; i <= 12; i++) {
-          var angle = (i * 30 - 90) * Math.PI / 180;
-          ctx.fillText(String(i), cx + (r - 30) * Math.cos(angle), cy + (r - 30) * Math.sin(angle));
-        }
-
-        var hours = now.getHours() % 12;
-        var minutes = now.getMinutes();
-        var seconds = now.getSeconds();
-        var ms = now.getMilliseconds();
-
-        var hourAngle = ((hours + minutes / 60) * 30 - 90) * Math.PI / 180;
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.lineTo(cx + 50 * Math.cos(hourAngle), cy + 50 * Math.sin(hourAngle));
-        ctx.strokeStyle = isDark ? '#e8ecf4' : '#2d3748';
-        ctx.lineWidth = 5;
-        ctx.lineCap = 'round';
-        ctx.stroke();
-
-        var minAngle = ((minutes + seconds / 60) * 6 - 90) * Math.PI / 180;
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.lineTo(cx + 70 * Math.cos(minAngle), cy + 70 * Math.sin(minAngle));
-        ctx.strokeStyle = isDark ? '#9aa5b8' : '#4a5568';
-        ctx.lineWidth = 3;
-        ctx.stroke();
-
-        var secAngle = ((seconds + ms / 1000) * 6 - 90) * Math.PI / 180;
-        ctx.beginPath();
-        ctx.moveTo(cx - 15 * Math.cos(secAngle), cy - 15 * Math.sin(secAngle));
-        ctx.lineTo(cx + 80 * Math.cos(secAngle), cy + 80 * Math.sin(secAngle));
-        ctx.strokeStyle = '#e74c3c';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.arc(cx, cy, 5, 0, Math.PI * 2);
-        ctx.fillStyle = '#e74c3c';
-        ctx.fill();
-
-        clockDigital.textContent = pad(now.getHours()) + ':' + pad(minutes) + ':' + pad(seconds);
-        clockDateDetail.textContent = now.getFullYear() + '年' + (now.getMonth()+1) + '月' + now.getDate() + '日 ' + ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'][now.getDay()];
-      }
-
-      function startClockAnimation() {
-        function animate() {
-          drawClock();
-          clockAnimId = requestAnimationFrame(animate);
-        }
-        animate();
-      }
-
-      function stopClockAnimation() {
-        if (clockAnimId) {
-          cancelAnimationFrame(clockAnimId);
-          clockAnimId = null;
-        }
-      }
-
-      window.stopClockAnimation = stopClockAnimation;
-
-      updateClock();
-      setInterval(updateClock, 1000);
-
-      clockWidget.addEventListener('click', function() {
-        clockModal.classList.add('active');
-        drawClock();
-        startClockAnimation();
-      });
-
-      clockModalClose.addEventListener('click', function() {
-        clockModal.classList.remove('active');
-        stopClockAnimation();
-      });
-
-      clockModal.addEventListener('click', function(e) {
-        if (e.target === clockModal) {
-          clockModal.classList.remove('active');
-          stopClockAnimation();
-        }
-      });
-    })();
-  </script>
-
-  <script>
-    // 日历组件
-    (function() {
-      var dayEl = document.getElementById('calendarDay');
-      var monthEl = document.getElementById('calendarMonth');
-      var weekdayEl = document.getElementById('calendarWeekday');
-      var calendarWidget = document.getElementById('calendarWidget');
-      var calendarModal = document.getElementById('calendarModal');
-      var calendarModalClose = document.getElementById('calendarModalClose');
-      var calTitle = document.getElementById('calTitle');
-      var calPrev = document.getElementById('calPrev');
-      var calNext = document.getElementById('calNext');
-      var calendarGrid = document.getElementById('calendarGrid');
-
-      var weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-      var calYear, calMonth;
-
-      function updateCalendar() {
-        var now = new Date();
-        dayEl.textContent = now.getDate();
-        monthEl.textContent = (now.getMonth() + 1) + '月';
-        weekdayEl.textContent = weekdays[now.getDay()];
-        calYear = now.getFullYear();
-        calMonth = now.getMonth();
-      }
-
-      function generateCalendarGrid(year, month) {
-        calTitle.textContent = year + '年' + (month + 1) + '月';
-        calendarGrid.innerHTML = '';
-        var firstDay = new Date(year, month, 1).getDay();
-        var daysInMonth = new Date(year, month + 1, 0).getDate();
-        var today = new Date();
-        var isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
-
-        for (var i = 0; i < firstDay; i++) {
-          var empty = document.createElement('div');
-          empty.className = 'cal-day empty';
-          calendarGrid.appendChild(empty);
-        }
-
-        for (var d = 1; d <= daysInMonth; d++) {
-          var dayDiv = document.createElement('div');
-          dayDiv.className = 'cal-day';
-          dayDiv.textContent = d;
-          if (isCurrentMonth && d === today.getDate()) {
-            dayDiv.classList.add('today');
-          }
-          if ((firstDay + d - 1) % 7 === 0 || (firstDay + d - 1) % 7 === 6) {
-            dayDiv.classList.add('weekend');
-          }
-          calendarGrid.appendChild(dayDiv);
-        }
-      }
-
-      updateCalendar();
-
-      calendarWidget.addEventListener('click', function() {
-        calendarModal.classList.add('active');
-        generateCalendarGrid(calYear, calMonth);
-      });
-
-      calendarModalClose.addEventListener('click', function() {
-        calendarModal.classList.remove('active');
-      });
-
-      calendarModal.addEventListener('click', function(e) {
-        if (e.target === calendarModal) {
-          calendarModal.classList.remove('active');
-        }
-      });
-
-      calPrev.addEventListener('click', function() {
-        calMonth--;
-        if (calMonth < 0) { calMonth = 11; calYear--; }
-        generateCalendarGrid(calYear, calMonth);
-      });
-
-      calNext.addEventListener('click', function() {
-        calMonth++;
-        if (calMonth > 11) { calMonth = 0; calYear++; }
-        generateCalendarGrid(calYear, calMonth);
-      });
-    })();
-  </script>
-
-  <script>
-    // 天气组件
-    (function() {
-      var tempEl = document.getElementById('weatherTemp');
-      var descEl = document.getElementById('weatherDesc');
-      var weatherWidget = document.getElementById('weatherWidget');
-      var weatherModal = document.getElementById('weatherModal');
-      var weatherModalClose = document.getElementById('weatherModalClose');
-
-      var weatherIcons = {
-        '晴': '\u2600\uFE0F', '多云': '\u26C5', '阴': '\u2601\uFE0F',
-        '小雨': '\uD83C\uDF26\uFE0F', '中雨': '\uD83C\uDF27\uFE0F', '大雨': '\uD83C\uDF27\uFE0F',
-        '雷阵雨': '\u26C8\uFE0F', '雪': '\uD83C\uDF28\uFE0F', '雾': '\uD83C\uDF2B\uFE0F'
-      };
-
-      function getWeatherIcon(desc) {
-        for (var key in weatherIcons) {
-          if (desc.indexOf(key) !== -1) return weatherIcons[key];
-        }
-        return '\uD83C\uDF24\uFE0F';
-      }
-
-      var weatherData = null;
-
-      async function fetchWeather() {
-        try {
-          var res = await fetch('https://wttr.in/?format=j1&lang=zh');
-          var data = await res.json();
-          var current = data.current_condition[0];
-          var temp = current.temp_C;
-          var desc = current.lang_zh && current.lang_zh[0] ? current.lang_zh[0].value : current.weatherDesc[0].value;
-
-          weatherData = current;
-          tempEl.textContent = temp + '°C';
-          descEl.textContent = desc;
-        } catch (e) {
-          tempEl.textContent = '--°C';
-          descEl.textContent = '获取失败';
-        }
-      }
-
-      function updateWeatherModal() {
-        if (!weatherData) return;
-        var desc = weatherData.lang_zh && weatherData.lang_zh[0] ? weatherData.lang_zh[0].value : weatherData.weatherDesc[0].value;
-        document.getElementById('weatherDetailIcon').textContent = getWeatherIcon(desc);
-        document.getElementById('weatherDetailTemp').textContent = weatherData.temp_C + '°C';
-        document.getElementById('weatherDetailDesc').textContent = desc;
-        document.getElementById('feelsLike').textContent = weatherData.FeelsLikeC + '°C';
-        document.getElementById('humidity').textContent = weatherData.humidity + '%';
-        document.getElementById('windSpeed').textContent = weatherData.windspeedKmph + ' km/h';
-        document.getElementById('visibility').textContent = weatherData.visibility + ' km';
-        document.getElementById('pressure').textContent = weatherData.pressure + ' hPa';
-        document.getElementById('uvIndex').textContent = weatherData.uvIndex;
-      }
-
-      fetchWeather();
-      setInterval(fetchWeather, 30 * 60 * 1000);
-
-      weatherWidget.addEventListener('click', function() {
-        weatherModal.classList.add('active');
-        updateWeatherModal();
-      });
-
-      weatherModalClose.addEventListener('click', function() {
-        weatherModal.classList.remove('active');
-      });
-
-      weatherModal.addEventListener('click', function(e) {
-        if (e.target === weatherModal) {
-          weatherModal.classList.remove('active');
-        }
-      });
-    })();
+    });
   </script>
 </body>
 </html>

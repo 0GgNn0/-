@@ -8,8 +8,30 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/style.css">
+  <style>
+    /* 管理后台：极简纯色，去背景图/毛玻璃 */
+    body.admin-page { background-image: none; background: var(--bg); }
+    body.admin-page::before { display: none; }
+    .admin-sidebar,
+    .admin-panel.active,
+    .admin-card,
+    .admin-sidebar .side-brand,
+    .modal .modal-content {
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      background: var(--bg-card);
+    }
+    [data-theme="dark"] .admin-sidebar,
+    [data-theme="dark"] .admin-panel.active,
+    [data-theme="dark"] .admin-card {
+      background: var(--bg-card);
+    }
+    .admin-sidebar { border-right: 1px solid var(--border); }
+    .side-item.active { background: var(--accent); color: #fff; }
+    .side-item.active svg { color: #fff; }
+  </style>
 </head>
-<body data-theme="light">
+<body data-theme="light" class="admin-page">
   <button class="theme-toggle" id="themeToggle" title="切换主题" aria-label="切换暗色/亮色模式">
     <span class="theme-icon" id="themeIcon">🌙</span>
   </button>
@@ -38,6 +60,10 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
           <span>对话</span>
         </div>
+        <div class="side-item" data-tab="experiences" onclick="switchTab('experiences')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>经历</span>
+        </div>
         <div class="side-item" data-tab="settings" onclick="switchTab('settings')">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           <span>设置</span>
@@ -57,6 +83,7 @@
         <button class="mobile-tab" data-tab="files" onclick="switchTab('files')">文件</button>
         <button class="mobile-tab" data-tab="works" onclick="switchTab('works')">作品</button>
         <button class="mobile-tab" data-tab="chats" onclick="switchTab('chats')">对话</button>
+        <button class="mobile-tab" data-tab="experiences" onclick="switchTab('experiences')">经历</button>
         <button class="mobile-tab" data-tab="settings" onclick="switchTab('settings')">设置</button>
       </div>
 
@@ -153,6 +180,32 @@
             </thead>
             <tbody id="chatsBody">
               <tr><td colspan="5" style="text-align:center; color:var(--text-secondary);">加载中...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ==================== 经历面板 ==================== -->
+      <div class="admin-panel" id="panel-experiences">
+        <h1 class="admin-h1">经历管理</h1>
+        <div class="admin-add" style="flex-wrap:wrap; gap:8px;">
+          <input type="text" id="newExpPeriod" placeholder="时间段（如 2024 — 至今）" style="width:180px;" maxlength="50">
+          <input type="text" id="newExpTitle" placeholder="标题（如 全栈开发者）" style="flex:1; min-width:150px;" maxlength="80">
+          <input type="text" id="newExpDesc" placeholder="描述（可选）" style="flex:2; min-width:200px;" maxlength="300">
+          <button class="btn btn-primary btn-sm" onclick="addExperience()">+ 添加</button>
+        </div>
+        <div class="admin-card">
+          <table class="link-table">
+            <thead>
+              <tr>
+                <th style="width:22%;">时间段</th>
+                <th style="width:28%;">标题</th>
+                <th style="width:35%;">描述</th>
+                <th style="width:15%;">操作</th>
+              </tr>
+            </thead>
+            <tbody id="experiencesBody">
+              <tr><td colspan="4" style="text-align:center; color:var(--text-secondary);">加载中...</td></tr>
             </tbody>
           </table>
         </div>
@@ -475,6 +528,68 @@
       if (!confirm('确定删除此链接？')) return;
       api('/api/links/' + id, 'DELETE').then(function(data) {
         if (data.ok) { showToast('链接已删除'); loadLinks(); }
+        else { showToast('删除失败: ' + (data.message || '')); }
+      });
+    }
+
+    // ==================== 经历管理 ====================
+    var experiencesData = [];
+
+    function loadExperiences() {
+      api('/api/experiences', 'GET').then(function(list) { experiencesData = list || []; renderExperiences(); });
+    }
+
+    function renderExperiences() {
+      var body = document.getElementById('experiencesBody');
+      if (!experiencesData || experiencesData.length === 0) {
+        body.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-secondary);">暂无经历，上方添加第一条</td></tr>';
+        return;
+      }
+      var html = '';
+      experiencesData.forEach(function(e) {
+        html += '<tr>' +
+          '<td>' + esc(e.period) + '</td>' +
+          '<td>' + esc(e.title) + '</td>' +
+          '<td style="font-size:12px;">' + esc(e.description || '') + '</td>' +
+          '<td class="actions-cell"><button class="edit-btn" onclick="editExperience(' + e.id + ')">编辑</button><button class="del-btn" onclick="deleteExperience(' + e.id + ')">删除</button></td>' +
+        '</tr>';
+      });
+      body.innerHTML = html;
+    }
+
+    function addExperience() {
+      var periodEl = document.getElementById('newExpPeriod');
+      var titleEl = document.getElementById('newExpTitle');
+      var descEl = document.getElementById('newExpDesc');
+      var period = periodEl.value.trim();
+      var title = titleEl.value.trim();
+      var desc = descEl.value.trim();
+      if (!period || !title) { showToast('请填写时间段和标题'); return; }
+      api('/api/experiences', 'POST', { period: period, title: title, description: desc }).then(function(data) {
+        if (data.ok) { periodEl.value = ''; titleEl.value = ''; descEl.value = ''; showToast('经历已添加'); loadExperiences(); }
+        else { showToast('添加失败: ' + (data.message || '')); }
+      });
+    }
+
+    function editExperience(id) {
+      var e = experiencesData.find(function(x) { return x.id === id; });
+      if (!e) return;
+      var newPeriod = prompt('编辑时间段:', e.period);
+      if (newPeriod === null) return;
+      var newTitle = prompt('编辑标题:', e.title);
+      if (newTitle === null) return;
+      var newDesc = prompt('编辑描述:', e.description || '');
+      if (newDesc === null) return;
+      api('/api/experiences/' + id, 'PUT', { period: newPeriod.trim() || e.period, title: newTitle.trim() || e.title, description: newDesc.trim() }).then(function(data) {
+        if (data.ok) { showToast('经历已更新'); loadExperiences(); }
+        else { showToast('更新失败: ' + (data.message || '')); }
+      });
+    }
+
+    function deleteExperience(id) {
+      if (!confirm('确定删除此经历？')) return;
+      api('/api/experiences/' + id, 'DELETE').then(function(data) {
+        if (data.ok) { showToast('经历已删除'); loadExperiences(); }
         else { showToast('删除失败: ' + (data.message || '')); }
       });
     }
@@ -922,6 +1037,7 @@
     loadFiles();
     loadWorks();
     loadChats();
+    loadExperiences();
   </script>
 </body>
 </html>

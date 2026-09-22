@@ -3,16 +3,30 @@ package models
 import "database/sql"
 
 type Work struct {
-	ID          int         `json:"id"`
-	CategoryID  *int        `json:"category_id"`
-	Title       string      `json:"title"`
-	Description string      `json:"description"`
-	CoverURL    string      `json:"cover_url"`
-	ContentType string      `json:"content_type"`
-	ExternalURL string      `json:"external_url"`
-	SortOrder   float64     `json:"sort_order"`
-	CreatedAt   string      `json:"created_at"`
-	Media       []WorkMedia `json:"media,omitempty"`
+	ID           int         `json:"id"`
+	CategoryID   *int        `json:"category_id"`
+	CategoryName string      `json:"category_name"`
+	CategorySlug string      `json:"category_slug"`
+	Title        string      `json:"title"`
+	Description  string      `json:"description"`
+	CoverURL     string      `json:"cover_url"`
+	ContentType  string      `json:"content_type"`
+	ExternalURL  string      `json:"external_url"`
+	SortOrder    float64     `json:"sort_order"`
+	CreatedAt    string      `json:"created_at"`
+	Media        []WorkMedia `json:"media,omitempty"`
+}
+
+func SlugForCategory(name string) string {
+	switch name {
+	case "Web 应用", "Web应用", "web", "web应用":
+		return "web"
+	case "AI 应用", "AI应用", "ai", "ai应用":
+		return "ai"
+	case "工具类", "工具", "tool":
+		return "tool"
+	}
+	return "web"
 }
 
 type WorkMedia struct {
@@ -52,7 +66,9 @@ func GetWorksByCategory(categoryID *int) ([]Work, error) {
 }
 
 func GetPublicWorks() ([]Work, error) {
-	rows, err := DB.Query("SELECT id, category_id, title, description, cover_url, content_type, external_url, sort_order, created_at FROM works ORDER BY sort_order ASC")
+	rows, err := DB.Query(`SELECT w.id, w.category_id, w.title, w.description, w.cover_url, w.content_type, w.external_url, w.sort_order, w.created_at, COALESCE(c.name, '')
+		FROM works w LEFT JOIN categories c ON c.id = w.category_id
+		ORDER BY w.sort_order ASC`)
 	if err != nil {
 		return nil, err
 	}
@@ -61,9 +77,10 @@ func GetPublicWorks() ([]Work, error) {
 	var works []Work
 	for rows.Next() {
 		var w Work
-		if err := rows.Scan(&w.ID, &w.CategoryID, &w.Title, &w.Description, &w.CoverURL, &w.ContentType, &w.ExternalURL, &w.SortOrder, &w.CreatedAt); err != nil {
+		if err := rows.Scan(&w.ID, &w.CategoryID, &w.Title, &w.Description, &w.CoverURL, &w.ContentType, &w.ExternalURL, &w.SortOrder, &w.CreatedAt, &w.CategoryName); err != nil {
 			return nil, err
 		}
+		w.CategorySlug = SlugForCategory(w.CategoryName)
 		works = append(works, w)
 	}
 	if works == nil {
@@ -148,12 +165,43 @@ func DeleteWorkMedia(id int) error {
 }
 
 func LoadWorkMedia(works []Work) error {
-	for i := range works {
-		media, err := GetWorkMedia(works[i].ID)
-		if err != nil {
+	if len(works) == 0 {
+		return nil
+	}
+	// 单查询取回全部 media，避免 N+1
+	ids := make([]int, len(works))
+	for i, w := range works {
+		ids[i] = w.ID
+	}
+	placeholders := ""
+	args := make([]interface{}, len(ids))
+	for i, id := range ids {
+		if i > 0 {
+			placeholders += ","
+		}
+		placeholders += "?"
+		args[i] = id
+	}
+	rows, err := DB.Query("SELECT id, work_id, file_id, media_url, media_type, sort_order FROM work_media WHERE work_id IN ("+placeholders+") ORDER BY work_id, sort_order", args...)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	byWork := make(map[int][]WorkMedia)
+	for rows.Next() {
+		var m WorkMedia
+		if err := rows.Scan(&m.ID, &m.WorkID, &m.FileID, &m.MediaURL, &m.MediaType, &m.SortOrder); err != nil {
 			return err
 		}
-		works[i].Media = media
+		byWork[m.WorkID] = append(byWork[m.WorkID], m)
+	}
+	for i := range works {
+		if m, ok := byWork[works[i].ID]; ok {
+			works[i].Media = m
+		} else {
+			works[i].Media = []WorkMedia{}
+		}
 	}
 	return nil
 }

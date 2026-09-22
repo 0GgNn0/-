@@ -52,7 +52,8 @@ var allowedMimeTypes = map[string]bool{
 	"audio/mp4":                                        true,
 	"audio/x-m4a":                                      true,
 	"audio/webm":                                       true,
-	"application/octet-stream":                         true,
+	// 注意：不允许 application/octet-stream —— DetectContentType 对未知二进制一律返回该类型，
+	// 允许它等于允许任意可执行文件上传
 }
 
 func IsAllowedMimeType(mimeType string) bool {

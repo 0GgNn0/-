@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{.Work.Title}} - {{.DisplayName}}</title>
+  <meta name="description" content="{{.Work.Description}}">
+  <link rel="icon" type="image/jpeg" href="/static/avatar.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    .wd-wrap { min-height: 100vh; position: relative; z-index: 1; max-width: 760px; margin: 0 auto; padding: 28px 24px 60px; }
+    .wd-back { font-size: 13px; color: var(--text-secondary); text-decoration: none; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--border); background: rgba(255,255,255,0.6); backdrop-filter: blur(10px); display: inline-block; }
+    [data-theme="dark"] .wd-back { background: rgba(24,24,27,0.6); }
+    .wd-back:hover { color: var(--accent); border-color: var(--accent); }
+    .wd-card { margin-top: 20px; border: 1px solid var(--border); border-radius: var(--radius); background: rgba(255,255,255,0.88); backdrop-filter: blur(10px); overflow: hidden; }
+    [data-theme="dark"] .wd-card { background: rgba(24,24,27,0.88); }
+    .wd-cover { width: 100%; max-height: 400px; object-fit: cover; display: block; background: var(--bg-muted); }
+    .wd-body { padding: 28px; }
+    .wd-title { font-size: 24px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
+    .wd-cat { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; background: var(--accent-muted); color: var(--accent); margin-top: 10px; }
+    .wd-desc { font-size: 15px; color: var(--text-secondary); line-height: 1.7; margin-top: 16px; }
+    .wd-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 20px; height: 40px; padding: 0 20px; border-radius: var(--radius-sm); background: var(--accent); color: #fff; font-size: 14px; font-weight: 500; text-decoration: none; }
+    .wd-link:hover { transform: translateY(-1px); }
+    .wd-media { margin-top: 24px; display: flex; flex-direction: column; gap: 12px; }
+    .wd-media img { width: 100%; border-radius: var(--radius-sm); cursor: zoom-in; display: block; }
+    .wd-media video, .wd-media audio { width: 100%; border-radius: var(--radius-sm); }
+    .wd-media-label { font-size: 12px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; }
+  </style>
+</head>
+<body data-theme="{{.Theme}}">
+  <button class="theme-toggle" id="themeToggle" title="切换主题" aria-label="切换暗色/亮色模式">
+    <span class="theme-icon" id="themeIcon">
+      <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </span>
+  </button>
+
+  <div class="wd-wrap">
+    <a href="/works" class="wd-back">← 全部作品</a>
+    <div class="wd-card">
+      {{if .Work.CoverURL}}<img src="{{.Work.CoverURL}}" alt="{{.Work.Title}}" class="wd-cover">{{end}}
+      <div class="wd-body">
+        <h1 class="wd-title">{{.Work.Title}}</h1>
+        {{if .Work.CategoryName}}<div class="wd-cat">{{.Work.CategoryName}}</div>{{end}}
+        {{if .Work.Description}}<p class="wd-desc">{{.Work.Description}}</p>{{end}}
+        {{if .Work.ExternalURL}}<a href="{{.Work.ExternalURL}}" target="_blank" rel="noopener noreferrer" class="wd-link">🔗 访问项目</a>{{end}}
+
+        {{if .Work.Media}}
+        <div class="wd-media">
+          <div class="wd-media-label">预览</div>
+          {{range .Work.Media}}
+          {{if eq .MediaType "image"}}<img src="{{.MediaURL}}" alt="{{$.Work.Title}}" onclick="window.open('{{.MediaURL}}','_blank','noopener')">{{end}}
+          {{if eq .MediaType "video"}}<video src="{{.MediaURL}}" controls></video>{{end}}
+          {{if eq .MediaType "audio"}}<audio src="{{.MediaURL}}" controls></audio>{{end}}
+          {{end}}
+        </div>
+        {{end}}
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      var html = document.documentElement;
+      var iconContainer = document.getElementById('themeIcon');
+      var storedTheme = localStorage.getItem('linktree-theme') || 'auto';
+      function eff() { return storedTheme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : storedTheme; }
+      function apply(t) {
+        html.setAttribute('data-theme', t); document.body.setAttribute('data-theme', t);
+        if (t === 'dark') iconContainer.classList.add('is-dark'); else iconContainer.classList.remove('is-dark');
+        localStorage.setItem('linktree-theme', t);
+      }
+      apply(eff());
+      document.getElementById('themeToggle').addEventListener('click', function() { apply(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); });
+    })();
+  </script>
+</body>
+</html>

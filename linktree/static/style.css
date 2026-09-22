@@ -5,7 +5,7 @@
    ======================================== */
 
 /* ---- Google Fonts ---- */
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600;700&display=swap');
+/* 字体由各页面 <link> 加载（index.html 等 head 中），此处不再 @import 重复请求 */
 
 /* ---- CSS Variables (Light) ---- */
 :root {
@@ -109,7 +109,7 @@ html {
 body {
   font-family: 'Geist', -apple-system, BlinkMacSystemFont, "PingFang SC",
     "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-  min-height: 100vh;
+  min-height: 100dvh;
   color: var(--text);
   background: var(--bg);
   background-image: url('/static/bg.jpg');
@@ -118,6 +118,101 @@ body {
   background-repeat: no-repeat;
   background-attachment: fixed;
   transition: var(--transition);
+}
+
+/* ---- 噪点纹理（2026 趋势：打破数字平面感，管理后台除外） ---- */
+body:not(.admin-page)::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2147483000;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---- 交错入场动画 ---- */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  animation: rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: var(--d, 0s);
+}
+@keyframes rise {
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal { animation: none; opacity: 1; transform: none; }
+}
+
+/* ---- 选中色 / 焦点环 ---- */
+::selection { background: var(--accent); color: #fff; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---- 聚光边框（卡片 hover 时沿光标点亮） ---- */
+.spot { position: relative; }
+.spot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(16, 185, 129, 0.55), transparent 42%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+.spot:hover::before { opacity: 1; }
+
+/* ---- 状态徽章（求职站：Open to work） ---- */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-muted);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  padding: 6px 14px;
+  border-radius: 999px;
+}
+.status-badge .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.55);
+  animation: pulse 2.2s ease-out infinite;
+}
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+  70% { box-shadow: 0 0 0 9px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* ---- mono 小标签 ---- */
+.mono-label {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+/* ---- 箭头滑动微交互 ---- */
+.arrow-link .arr { display: inline-block; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+.arrow-link:hover .arr { transform: translateX(4px); }
   position: relative;
   overflow-x: hidden;
   line-height: 1.6;
@@ -147,13 +242,15 @@ body.chat-page::before {
    ======================================== */
 .theme-toggle {
   position: fixed;
-  top: 74px;
+  top: 24px;
   right: 24px;
   width: 42px;
   height: 42px;
   border-radius: 50%;
   border: 1px solid var(--border);
-  background: var(--bg-card);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -162,6 +259,10 @@ body.chat-page::before {
   box-shadow: var(--shadow-card);
   transition: var(--transition);
   color: var(--text);
+}
+
+[data-theme="dark"] .theme-toggle {
+  background: rgba(24, 24, 27, 0.72);
 }
 
 .theme-toggle:hover {
@@ -201,6 +302,7 @@ body.chat-page::before {
   z-index: 1;
 }
 
+.tile,
 .bento-tile {
   background: rgba(255, 255, 255, 0.72);
   backdrop-filter: blur(20px) saturate(1.4);
@@ -213,27 +315,47 @@ body.chat-page::before {
   overflow: hidden;
 }
 
+[data-theme="dark"] .tile,
 [data-theme="dark"] .bento-tile {
   background: rgba(24, 24, 27, 0.72);
 }
 
+.tile:hover,
 .bento-tile:hover {
   border-color: var(--accent);
   box-shadow: var(--shadow-hover);
   transform: translateY(-2px);
 }
 
+.tile:active,
 .bento-tile:active {
   transform: scale(0.98);
 }
 
-.tile-profile { grid-column: span 4; }
-.tile-clock   { grid-column: span 3; }
+.tile-profile { grid-column: span 5; }
+.tile-clock   { grid-column: span 4; }
 .tile-weather { grid-column: span 3; }
-.tile-links   { grid-column: span 5; }
-.tile-calendar{ grid-column: span 3; }
-.tile-works   { grid-column: span 8; }
+.tile-links   { grid-column: span 7; }
+.tile-calendar{ grid-column: span 5; align-self: start; }
+.tile-works   { grid-column: span 7; }
+.tile-about   { grid-column: span 5; }
+.tile-timeline{ grid-column: span 8; }
 .tile-files   { grid-column: span 4; }
+
+/* 小组件卡片内容垂直居中（避免内容少时下方大量空白） */
+.tile-clock,
+.tile-weather,
+.tile-calendar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.home-footer {
+  grid-column: span 12;
+}
 
 /* ========================================
    4. Homepage - Profile Card
@@ -478,6 +600,59 @@ body.chat-page::before {
   margin-top: 6px;
 }
 
+.clock-weekday {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 6px;
+}
+
+/* 迷你月历（日历卡片内嵌） */
+.cal-mini-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.cal-mini-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  width: 100%;
+  margin-bottom: 2px;
+}
+.cal-mini-weekdays span {
+  font-size: 9px;
+  color: var(--text-tertiary);
+  text-align: center;
+}
+.cal-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  width: 100%;
+}
+.cal-mini-cell {
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: var(--text);
+  border-radius: 5px;
+}
+.cal-mini-cell.empty { visibility: hidden; }
+.cal-mini-cell.today {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+}
+
+.weather-extra {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-top: 8px;
+}
+
 /* ========================================
    9. Homepage - Works
    ======================================== */
@@ -496,8 +671,10 @@ body.chat-page::before {
 
 .works-featured-cover {
   width: 100%;
-  height: 200px;
-  object-fit: cover;
+  max-height: 300px;
+  height: auto;
+  object-fit: contain;
+  background: var(--bg-muted);
   display: block;
 }
 
@@ -561,16 +738,20 @@ body.chat-page::before {
   width: 100%;
   height: 140px;
   overflow: hidden;
+  object-fit: cover;
+  display: block;
 }
 
-.work-card-cover img {
+.work-card-cover img,
+img.work-card-cover {
   width: 100%;
   height: 100%;
   object-fit: cover;
   transition: var(--transition);
 }
 
-.work-card:hover .work-card-cover img {
+.work-card:hover .work-card-cover img,
+.work-card:hover img.work-card-cover {
   transform: scale(1.03);
 }
 
@@ -610,13 +791,27 @@ body.chat-page::before {
 
 .work-card-placeholder {
   width: 100%;
-  height: 100%;
+  height: 140px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 36px;
-  background: var(--accent-muted);
+  background: linear-gradient(135deg, var(--accent-muted) 0%, var(--bg-muted) 100%);
+  color: var(--accent);
+  opacity: 0.85;
 }
+.work-card-placeholder svg { width: 28px; height: 28px; }
+
+.works-featured-placeholder {
+  width: 100%;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--accent-muted) 0%, var(--bg-muted) 100%);
+  color: var(--accent);
+  opacity: 0.85;
+}
+.works-featured-placeholder svg { width: 40px; height: 40px; }
 
 /* ========================================
    10. Homepage - Files
@@ -720,7 +915,204 @@ body.chat-page::before {
 }
 
 /* ========================================
-   11. Homepage - Footer
+   11. Homepage - About / Timeline / Works Filter
+   ======================================== */
+
+/* Profile 卡增强 */
+.profile-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+  margin-bottom: 2px;
+}
+
+.profile-tagline {
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+.btn-resume {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.btn-resume:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.btn-resume:active {
+  transform: scale(0.97);
+}
+
+.skill-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.skill-chip {
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--accent-muted);
+  color: var(--accent);
+  border: 1px solid rgba(16,185,129,0.15);
+  transition: var(--transition);
+}
+
+.skill-chip:hover {
+  background: var(--accent-muted-hover);
+  transform: translateY(-1px);
+}
+
+/* 关于我 tile */
+.about-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  text-align: left;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 12px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+}
+
+.stat-value {
+  font-family: 'Geist Mono', monospace;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+}
+
+/* 经历时间线 tile */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--border);
+}
+
+.timeline-item {
+  position: relative;
+  padding: 0 0 24px 32px;
+}
+
+.timeline-item:last-child {
+  padding-bottom: 0;
+}
+
+.timeline-dot {
+  position: absolute;
+  left: 0;
+  top: 4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 3px solid var(--bg-card);
+  box-shadow: 0 0 0 2px rgba(16,185,129,0.2);
+}
+
+.timeline-period {
+  font-family: 'Geist Mono', monospace;
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.timeline-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin-top: 4px;
+}
+
+.timeline-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 6px;
+  line-height: 1.6;
+}
+
+/* 作品过滤 */
+.works-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.filter-chip {
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: inherit;
+}
+
+.filter-chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.filter-chip.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: transparent;
+  font-weight: 500;
+}
+
+/* ========================================
+   12. Homepage - Footer
    ======================================== */
 .home-footer {
   display: flex;
@@ -743,7 +1135,7 @@ body.chat-page::before {
 }
 
 /* ========================================
-   12. Homepage - Legacy Classes
+   13. Homepage - Legacy Classes
    ======================================== */
 
 /* Navigation */
@@ -1211,7 +1603,7 @@ body.chat-page::before {
 }
 
 /* ========================================
-   13. Admin Page
+   14. Admin Page
    ======================================== */
 .admin-layout {
   display: flex;
@@ -1222,7 +1614,9 @@ body.chat-page::before {
 
 .admin-sidebar {
   width: 240px;
-  background: var(--bg-elevated);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
@@ -1233,6 +1627,10 @@ body.chat-page::before {
   height: 100vh;
 }
 
+[data-theme="dark"] .admin-sidebar {
+  background: rgba(24, 24, 27, 0.72);
+}
+
 .side-brand {
   display: flex;
   align-items: center;
@@ -1241,7 +1639,7 @@ body.chat-page::before {
   padding: 0 8px;
 }
 
-.side-logo {
+.side-logo, .side-avatar {
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -1317,6 +1715,11 @@ body.chat-page::before {
   background: var(--bg-muted);
 }
 
+.side-link.danger:hover {
+  color: var(--red);
+  background: rgba(239,68,68,0.06);
+}
+
 .admin-main {
   flex: 1;
   padding: 32px 40px;
@@ -1332,19 +1735,37 @@ body.chat-page::before {
 }
 
 .admin-panel {
+  display: none;
+}
+
+.admin-panel.active {
+  display: block;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 24px;
   margin-bottom: 20px;
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+[data-theme="dark"] .admin-panel.active {
+  background: rgba(24, 24, 27, 0.72);
 }
 
 .admin-card {
-  background: var(--bg-card);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(16px) saturate(1.3);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 16px;
   transition: var(--transition);
+}
+
+[data-theme="dark"] .admin-card {
+  background: rgba(24, 24, 27, 0.6);
 }
 
 .admin-card:hover {
@@ -1437,7 +1858,32 @@ body.chat-page::before {
 }
 
 .admin-add {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 16px;
+  padding: 10px 12px;
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.admin-add input, .admin-add select {
+  flex: 1;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--input-border);
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: var(--transition);
+}
+
+.admin-add input:focus, .admin-add select:focus {
+  border-color: var(--accent);
 }
 
 .admin-add-btn {
@@ -1464,7 +1910,17 @@ body.chat-page::before {
 }
 
 .settings-block {
-  margin-bottom: 32px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(16px) saturate(1.3);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+[data-theme="dark"] .settings-block {
+  background: rgba(24, 24, 27, 0.6);
 }
 
 .settings-block-title {
@@ -1604,7 +2060,7 @@ body.chat-page::before {
 }
 
 /* ========================================
-   14. Admin Page - Legacy Classes
+   15. Admin Page - Legacy Classes
    ======================================== */
 .admin-container {
   position: relative;
@@ -1864,7 +2320,7 @@ body.chat-page::before {
 }
 
 /* ========================================
-   15. Login Page
+   16. Login Page
    ======================================== */
 .login-split {
   display: flex;
@@ -2004,7 +2460,7 @@ body.chat-page::before {
 }
 
 /* ========================================
-   16. Login Page - Legacy Classes
+   17. Login Page - Legacy Classes
    ======================================== */
 .login-container {
   position: relative;
@@ -2091,7 +2547,7 @@ body.chat-page::before {
 }
 
 /* ========================================
-   17. Chat Page
+   18. Chat Page
    ======================================== */
 .chat-layout {
   display: flex;
@@ -2472,7 +2928,7 @@ body.chat-page::before {
 }
 
 /* ========================================
-   18. Chat Page - Legacy Classes
+   19. Chat Page - Legacy Classes
    ======================================== */
 .chat-sidebar-header {
   padding: 16px;
@@ -2778,7 +3234,7 @@ body.chat-page::before {
 }
 
 /* ========================================
-   19. Modals
+   20. Modals
    ======================================== */
 .modal {
   display: none;
@@ -2944,7 +3400,7 @@ body.chat-page::before {
   padding: 0 4px;
 }
 
-.cal-day {
+.cal-cell {
   width: 38px;
   height: 38px;
   display: flex;
@@ -2957,22 +3413,22 @@ body.chat-page::before {
   cursor: pointer;
 }
 
-.cal-day.empty {
+.cal-cell.empty {
   visibility: hidden;
   cursor: default;
 }
 
-.cal-day:not(.empty):hover {
+.cal-cell:not(.empty):hover {
   background: var(--accent-muted);
 }
 
-.cal-day.today {
+.cal-cell.today {
   background: var(--accent);
   color: #fff;
   font-weight: 700;
 }
 
-.cal-day.weekend {
+.cal-cell.weekend {
   color: var(--text-secondary);
 }
 
@@ -3041,7 +3497,7 @@ body.chat-page::before {
 }
 
 /* ========================================
-   20. SVG Icon System
+   21. SVG Icon System
    ======================================== */
 .icon {
   display: inline-flex;
@@ -3060,13 +3516,101 @@ body.chat-page::before {
 }
 
 /* ========================================
-   21. Responsive - @media (max-width: 768px)
+   21. Missing utility classes (首页缺失样式补齐)
+   ======================================== */
+/* 页面主容器 */
+.home-wrap {
+  min-height: 100vh;
+  padding: 24px;
+  position: relative;
+  z-index: 1;
+}
+
+/* 个人资料信息区 */
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 12px;
+}
+
+/* 对话/管理小按钮（复用 action-btn 基础，覆盖为小号） */
+.profile-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-muted);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  transition: var(--transition);
+}
+.profile-action-btn:hover {
+  background: var(--accent-muted);
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+.profile-action-btn:active {
+  transform: scale(0.97);
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px 0;
+  color: var(--text-tertiary);
+  font-size: 13px;
+}
+
+/* 天气卡片图标 */
+.weather-svg-icon {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+/* 主题切换图标显隐（配合 #themeIcon.is-dark） */
+.icon-sun  { display: block; }
+.icon-moon { display: none; }
+.is-dark .icon-sun  { display: none; }
+.is-dark .icon-moon { display: block; }
+
+/* ========================================
+   22. Responsive - @media (max-width: 768px)
    ======================================== */
 @media (max-width: 768px) {
-  /* Bento grid collapse */
+  /* Body & background */
+  body {
+    background-attachment: scroll;
+  }
+
+  body::before {
+    background: rgba(249, 250, 251, 0.5);
+    backdrop-filter: blur(4px) saturate(1.05);
+    -webkit-backdrop-filter: blur(4px) saturate(1.05);
+  }
+
+  [data-theme="dark"] body::before {
+    background: rgba(9, 9, 11, 0.55);
+  }
+
+  /* Bento grid - single column stack */
   .bento {
     grid-template-columns: 1fr;
-    padding: 80px 16px 24px;
+    gap: 12px;
+    padding: 72px 12px 24px;
   }
 
   .bento-tile,
@@ -3076,85 +3620,73 @@ body.chat-page::before {
   .tile-links,
   .tile-calendar,
   .tile-works,
-  .tile-files {
-    grid-column: span 1;
+  .tile-about,
+  .tile-timeline,
+  .tile-files,
+  .home-footer {
+    grid-column: span 1 !important;
   }
 
-  /* Homepage */
-  .main-layout {
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-    margin-top: 80px;
-    padding: 0 12px;
-  }
-
-  .container {
-    padding: 36px 24px 32px;
-    border-radius: var(--radius);
-  }
-
-  .name {
-    font-size: 20px;
-  }
-
-  .link-btn {
-    height: 48px;
-    font-size: 15px;
+  .bento-tile {
+    padding: 20px 16px;
     border-radius: var(--radius-sm);
   }
 
-  .theme-toggle {
-    top: 74px;
-    right: 16px;
-    width: 36px;
-    height: 36px;
+  /* Profile tile */
+  .profile-avatar {
+    width: 64px;
+    height: 64px;
   }
 
-  .theme-icon {
-    font-size: 16px;
+  .profile-name {
+    font-size: 18px;
   }
 
-  .footer {
-    top: 118px;
-    right: 16px;
+  .profile-bio {
+    font-size: 13px;
   }
 
-  .admin-link {
-    width: 36px;
-    height: 36px;
-    font-size: 12px;
+  .profile-actions {
+    flex-wrap: wrap;
   }
 
-  .widgets-standalone {
-    flex-direction: row;
-    width: 100%;
+  /* Clock tile */
+  .clock-value {
+    font-size: 36px;
+  }
+
+  /* Weather tile */
+  .weather-val {
+    font-size: 24px;
+  }
+
+  /* Links tile */
+  .links-stack {
     gap: 8px;
   }
 
-  .widgets-standalone .widget {
-    flex: 1;
-    padding: 12px 8px;
+  .link-item {
+    padding: 10px 12px;
+    border-radius: var(--radius-xs);
   }
 
-  .widgets-standalone .widget-icon {
-    font-size: 20px;
+  .link-icon-box {
+    width: 32px;
+    height: 32px;
   }
 
-  .widgets-standalone .clock-time {
-    font-size: 14px;
+  .link-url {
+    display: none;
   }
 
-  .widgets-standalone .calendar-day {
-    font-size: 22px;
+  /* Works tile */
+  .works-featured {
+    flex-direction: column;
   }
 
-  .widgets-standalone .weather-temp {
-    font-size: 16px;
-  }
-
-  .works-grid-public {
-    grid-template-columns: 1fr;
+  .works-featured-cover {
+    width: 100%;
+    height: 160px;
   }
 
   .works-grid {
@@ -3166,27 +3698,38 @@ body.chat-page::before {
     height: 100px;
   }
 
+  /* Files tile */
+  .files-stack {
+    gap: 6px;
+  }
+
+  .file-card {
+    padding: 10px 12px;
+    border-radius: var(--radius-xs);
+  }
+
+  /* Footer */
+  .home-footer {
+    flex-direction: row;
+    justify-content: center;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  /* Theme toggle */
+  .theme-toggle {
+    top: 16px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+  }
+
+  .theme-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
   /* Admin */
-  .admin-container {
-    padding: 24px 20px;
-    margin: 20px 0;
-    border-radius: var(--radius);
-  }
-
-  .admin-tabs {
-    gap: 2px;
-    padding: 3px;
-  }
-
-  .admin-tab {
-    font-size: 13px;
-  }
-
-  .link-table th:nth-child(2),
-  .link-table td:nth-child(2) {
-    display: none;
-  }
-
   .admin-layout {
     flex-direction: column;
   }
@@ -3200,7 +3743,46 @@ body.chat-page::before {
   }
 
   .admin-main {
-    padding: 20px 16px;
+    padding: 16px 12px;
+  }
+
+  .admin-panel.active {
+    padding: 16px 12px;
+  }
+
+  .admin-h1 {
+    font-size: 18px;
+  }
+
+  .admin-add {
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .admin-add input,
+  .admin-add select {
+    min-width: 0;
+    height: 32px;
+    font-size: 12px;
+  }
+
+  .admin-card {
+    padding: 12px;
+    overflow-x: auto;
+  }
+
+  .link-table {
+    font-size: 12px;
+  }
+
+  .link-table th:nth-child(2),
+  .link-table td:nth-child(2) {
+    display: none;
+  }
+
+  .settings-block {
+    padding: 16px 12px;
   }
 
   /* Login */
@@ -3212,10 +3794,17 @@ body.chat-page::before {
     display: none;
   }
 
-  .login-container {
-    padding: 36px 24px;
-    margin: 80px auto 0;
-    border-radius: var(--radius);
+  .login-form-side {
+    width: 100%;
+    padding: 72px 20px 40px;
+  }
+
+  .login-form {
+    padding: 32px 20px;
+  }
+
+  .login-form-title {
+    font-size: 22px;
   }
 
   /* Chat */
@@ -3224,8 +3813,10 @@ body.chat-page::before {
     left: 0;
     top: 0;
     bottom: 0;
+    width: 280px;
     z-index: 200;
     transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     box-shadow: 4px 0 20px rgba(0,0,0,0.15);
   }
 
@@ -3233,34 +3824,57 @@ body.chat-page::before {
     transform: translateX(0);
   }
 
-  .chat-menu-btn {
-    display: flex;
-  }
-
   .chat-mobile-menu {
     display: flex;
   }
 
-  .chat-msg-content {
-    max-width: 90%;
+  .chat-topbar {
+    padding: 12px 16px;
+  }
+
+  .chat-topbar-title {
+    font-size: 14px;
   }
 
   .msg-bubble {
-    max-width: 90%;
+    max-width: 85%;
+    font-size: 14px;
+    padding: 10px 14px;
+  }
+
+  .chat-input-box {
+    padding: 8px 12px;
+  }
+
+  .chat-input-box textarea {
+    font-size: 14px;
   }
 
   /* Modals */
-  .clock-modal-content { width: 300px; padding: 32px 20px 24px; }
-  .calendar-modal-content { width: 300px; padding: 32px 16px 24px; }
-  .weather-modal-content { width: 300px; padding: 28px 20px; }
-  #clockCanvas { width: 240px; height: 240px; }
-  .clock-digital { font-size: 24px; }
-  .cal-day { width: 34px; height: 34px; font-size: 13px; }
-  .weather-detail-icon { font-size: 44px; }
-  .weather-detail-temp { font-size: 30px; }
-  .weather-info-grid { gap: 8px; }
-  .info-item { padding: 10px; }
-  .work-detail-content { width: 95vw; padding: 20px; }
+  .modal-content {
+    width: 92vw !important;
+    max-height: 85vh;
+    padding: 20px 16px !important;
+  }
+
+  .clock-modal-content { width: 92vw !important; padding: 20px 16px !important; }
+  .calendar-modal-content { width: 92vw !important; padding: 20px 12px !important; }
+  .weather-modal-content { width: 92vw !important; padding: 20px 16px !important; }
+  #clockCanvas { width: 220px; height: 220px; }
+  .clock-digital { font-size: 22px; }
+  .clock-value { font-size: 28px; }
+  .cal-cell { width: 32px; height: 32px; font-size: 12px; }
+  .weather-detail-icon { font-size: 40px; }
+  .weather-detail-temp { font-size: 26px; }
+  .weather-info-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .info-item { padding: 8px; }
+  .work-detail-content { width: 92vw !important; padding: 16px !important; }
+
+  /* Avatar modal */
+  .avatar-modal img {
+    max-width: 85vw;
+    max-height: 85vh;
+  }
 }
 
 @media (min-width: 600px) and (max-width: 900px) {

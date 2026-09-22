@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>问 AI 关于我 - 啊芃</title>
+  <link rel="icon" type="image/jpeg" href="/static/avatar.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    .ask-wrap { min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 24px; position: relative; z-index: 1; }
+    .ask-card { width: 100%; max-width: 640px; background: rgba(255,255,255,0.72); backdrop-filter: blur(20px) saturate(1.4); -webkit-backdrop-filter: blur(20px) saturate(1.4); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-card); padding: 32px; }
+    [data-theme="dark"] .ask-card { background: rgba(24,24,27,0.72); }
+    .ask-header { text-align: center; margin-bottom: 24px; }
+    .ask-header h1 { font-size: 24px; font-weight: 700; color: var(--text); margin: 12px 0 6px; letter-spacing: -0.02em; }
+    .ask-header p { font-size: 14px; color: var(--text-secondary); }
+    .ask-avatar { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border); }
+    .ask-quick { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 20px; }
+    .ask-quick-btn { padding: 6px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-muted); color: var(--text-secondary); font-size: 13px; cursor: pointer; transition: var(--transition); font-family: inherit; }
+    .ask-quick-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-muted); }
+    .ask-messages { min-height: 120px; max-height: 50vh; overflow-y: auto; margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .ask-msg { padding: 12px 16px; border-radius: 14px; font-size: 14px; line-height: 1.6; max-width: 90%; white-space: pre-wrap; word-break: break-word; }
+    .ask-msg-q { align-self: flex-end; background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+    .ask-msg-a { align-self: flex-start; background: var(--bg-muted); color: var(--text); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+    .ask-msg-a.streaming::after { content: '▊'; color: var(--accent); animation: askBlink 1s infinite; }
+    @keyframes askBlink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+    .ask-input-row { display: flex; gap: 8px; }
+    .ask-input { flex: 1; height: 44px; padding: 0 16px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--input-bg); color: var(--text); font-size: 14px; font-family: inherit; outline: none; }
+    .ask-input:focus { border-color: var(--accent); }
+    .ask-send { height: 44px; padding: 0 20px; border-radius: var(--radius-sm); border: none; background: var(--accent); color: #fff; font-size: 14px; font-weight: 500; cursor: pointer; transition: var(--transition); font-family: inherit; }
+    .ask-send:hover:not(:disabled) { transform: translateY(-1px); }
+    .ask-send:disabled { opacity: 0.5; cursor: not-allowed; }
+    .ask-hint { text-align: center; font-size: 12px; color: var(--text-tertiary); margin-top: 14px; }
+    .ask-back { position: fixed; top: 20px; left: 20px; z-index: 10; display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 999px; background: rgba(255,255,255,0.72); backdrop-filter: blur(20px); border: 1px solid var(--border); color: var(--text); font-size: 13px; text-decoration: none; transition: var(--transition); }
+    [data-theme="dark"] .ask-back { background: rgba(24,24,27,0.72); }
+    .ask-back:hover { border-color: var(--accent); color: var(--accent); }
+  </style>
+</head>
+<body>
+  <a href="/" class="ask-back">← 返回主页</a>
+  <button class="theme-toggle" id="themeToggle" title="切换主题" aria-label="切换暗色/亮色模式">
+    <span class="theme-icon" id="themeIcon">
+      <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </span>
+  </button>
+
+  <div class="ask-wrap">
+    <div class="ask-card">
+      <div class="ask-header">
+        <img src="/static/avatar.jpg" alt="啊芃" class="ask-avatar">
+        <h1>问 AI 关于我</h1>
+        <p>AI 了解我的项目、技能与经历，尽管问</p>
+      </div>
+
+      <div class="ask-quick">
+        <button class="ask-quick-btn" data-q="你最得意的项目是什么？">最得意的项目</button>
+        <button class="ask-quick-btn" data-q="你的技术栈是什么？">技术栈</button>
+        <button class="ask-quick-btn" data-q="介绍一个你做的 AI 应用">AI 项目经验</button>
+        <button class="ask-quick-btn" data-q="你适合什么岗位？">适合的岗位</button>
+      </div>
+
+      <div class="ask-messages" id="askMessages"></div>
+
+      <div class="ask-input-row">
+        <input type="text" class="ask-input" id="askInput" placeholder="比如：他做过什么项目？" maxlength="200">
+        <button class="ask-send" id="askSend">提问</button>
+      </div>
+      <div class="ask-hint">AI 回答仅供参考 · 每分钟最多 3 次提问</div>
+    </div>
+  </div>
+
+  <script>
+    var msgEl = document.getElementById('askMessages');
+    var inputEl = document.getElementById('askInput');
+    var sendBtn = document.getElementById('askSend');
+    var asking = false;
+
+    function esc(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function addMsg(text, cls) {
+      var div = document.createElement('div');
+      div.className = 'ask-msg ' + cls;
+      div.textContent = text;
+      msgEl.appendChild(div);
+      msgEl.scrollTop = msgEl.scrollHeight;
+      return div;
+    }
+
+    async function ask(question) {
+      if (asking || !question.trim()) return;
+      asking = true;
+      sendBtn.disabled = true;
+      inputEl.value = '';
+      addMsg(question, 'ask-msg-q');
+      var reply = addMsg('思考中…', 'ask-msg-a streaming');
+
+      try {
+        var res = await fetch('/api/ask', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question: question })
+        });
+
+        if (!res.ok) {
+          var errData = await res.json().catch(function() { return {}; });
+          reply.textContent = errData.message || '请求失败，请稍后再试';
+          reply.classList.remove('streaming');
+          asking = false;
+          sendBtn.disabled = false;
+          return;
+        }
+
+        reply.textContent = '';
+        var reader = res.body.getReader();
+        var decoder = new TextDecoder();
+        var buffer = '';
+        while (true) {
+          var chunk = await reader.read();
+          if (chunk.done) break;
+          buffer += decoder.decode(chunk.value, { stream: true });
+          var lines = buffer.split('\n\n');
+          buffer = lines.pop();
+          for (var i = 0; i < lines.length; i++) {
+            var line = lines[i];
+            if (line.indexOf('data: ') !== 0) continue;
+            try {
+              var data = JSON.parse(line.slice(6));
+              if (data.type === 'delta') {
+                reply.textContent += data.content;
+                msgEl.scrollTop = msgEl.scrollHeight;
+              } else if (data.type === 'error') {
+                reply.textContent = data.message || 'AI 服务出错';
+              }
+            } catch (e) {}
+          }
+        }
+        if (!reply.textContent) reply.textContent = '（没有收到回答，请换个问法试试）';
+      } catch (e) {
+        reply.textContent = '网络错误，请稍后再试';
+      }
+      reply.classList.remove('streaming');
+      asking = false;
+      sendBtn.disabled = false;
+      inputEl.focus();
+    }
+
+    sendBtn.addEventListener('click', function() { ask(inputEl.value); });
+    inputEl.addEventListener('keydown', function(e) { if (e.key === 'Enter') ask(inputEl.value); });
+    document.querySelectorAll('.ask-quick-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() { ask(btn.getAttribute('data-q')); });
+    });
+
+    // 主题
+    (function() {
+      var saved = localStorage.getItem('linktree_theme') || 'light';
+      document.documentElement.setAttribute('data-theme', saved);
+      document.body.setAttribute('data-theme', saved);
+      var iconContainer = document.getElementById('themeIcon');
+      if (saved === 'dark') iconContainer.classList.add('is-dark');
+      document.getElementById('themeToggle').addEventListener('click', function() {
+        var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        document.body.setAttribute('data-theme', next);
+        localStorage.setItem('linktree_theme', next);
+        if (next === 'dark') { iconContainer.classList.add('is-dark'); } else { iconContainer.classList.remove('is-dark'); }
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"linktree/handlers"
 	"linktree/middleware"
@@ -13,6 +14,13 @@ import (
 
 	"github.com/gorilla/sessions"
 )
+
+func noCache(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache, must-revalidate")
+		next.ServeHTTP(w, r)
+	})
+}
 
 func main() {
 	port := os.Getenv("PORT")
@@ -35,6 +43,7 @@ func main() {
 
 	// Seed default data
 	models.SeedDefaultLinks()
+	models.SeedDefaultExperiences()
 
 	// Init admin password (first run only)
 	generatedPassword, err := models.InitAdminPassword(os.Getenv("ADMIN_PASSWORD"))
@@ -56,13 +65,15 @@ func main() {
 	// Init session store
 	sessionKey := os.Getenv("SESSION_SECRET")
 	if sessionKey == "" {
-		sessionKey = "linktree-default-secret-change-me-in-production"
+		log.Fatal("SESSION_SECRET 未设置，拒绝启动（会话密钥缺失会导致认证可伪造）")
 	}
 	store := sessions.NewCookieStore([]byte(sessionKey))
 	store.Options = &sessions.Options{
 		Path:     "/",
 		MaxAge:   86400, // 24 hours
 		HttpOnly: true,
+		Secure:   os.Getenv("COOKIE_SECURE") == "1", // HTTPS 部署时设为 1
+		SameSite: http.SameSiteLaxMode,
 	}
 	handlers.SetStore(store)
 
@@ -71,12 +82,19 @@ func main() {
 
 	// Public routes
 	mux.HandleFunc("GET /", handlers.IndexPage)
+	mux.HandleFunc("GET /ask", handlers.AskPage)
+	mux.HandleFunc("POST /api/ask", handlers.AskAI)
+	mux.HandleFunc("GET /works", handlers.WorksPage)
+	mux.HandleFunc("GET /work/{id}", handlers.WorkDetailPage)
+	mux.HandleFunc("GET /about", handlers.AboutPage)
+	mux.HandleFunc("GET /experience", handlers.ExperiencePage)
+	mux.HandleFunc("GET /contact", handlers.ContactPage)
 	mux.HandleFunc("GET /admin/login", handlers.LoginPage)
 	mux.HandleFunc("POST /api/auth/login", handlers.Login)
 	mux.HandleFunc("POST /api/auth/logout", handlers.Logout)
 
 	// Static files
-	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	mux.Handle("GET /static/", http.StripPrefix("/static/", noCache(http.FileServer(http.Dir("static")))))
 
 	// Protected routes
 	auth := middleware.CheckAuth(store)
@@ -89,6 +107,12 @@ func main() {
 	mux.Handle("DELETE /api/links/{id}", auth(http.HandlerFunc(handlers.DeleteLink)))
 	mux.Handle("GET /api/settings", auth(http.HandlerFunc(handlers.GetSettings)))
 	mux.Handle("PUT /api/settings", auth(http.HandlerFunc(handlers.UpdateSettings)))
+
+	// Experiences
+	mux.HandleFunc("GET /api/experiences", handlers.ListExperiences)
+	mux.Handle("POST /api/experiences", auth(http.HandlerFunc(handlers.CreateExperience)))
+	mux.Handle("PUT /api/experiences/{id}", auth(http.HandlerFunc(handlers.UpdateExperience)))
+	mux.Handle("DELETE /api/experiences/{id}", auth(http.HandlerFunc(handlers.DeleteExperience)))
 
 	// Categories
 	mux.HandleFunc("GET /api/categories", handlers.ListCategories)
@@ -124,8 +148,15 @@ func main() {
 
 	// Start
 	addr := ":" + port
+	srv := &http.Server{
+		Addr:              addr,
+		Handler:           mux,
+		ReadHeaderTimeout: 10 * time.Second,
+		IdleTimeout:       120 * time.Second,
+		// WriteTimeout 不设全局值：SSE 流式聊天与大文件下载会被全局写超时掐断
+	}
 	fmt.Printf("LinkTree server starting on http://0.0.0.0%s\n", addr)
-	if err := http.ListenAndServe(addr, mux); err != nil {
+	if err := srv.ListenAndServe(); err != nil {
 		log.Fatalf("Server failed: %v", err)
 	}
 }

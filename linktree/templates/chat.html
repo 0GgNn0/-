@@ -116,8 +116,8 @@
     }
 
     function loadSessions() {
-      apiCall('/api/chat/sessions', 'GET').then(function(data) {
-        sessions = data;
+      return apiCall('/api/chat/sessions', 'GET').then(function(data) {
+        sessions = data || [];
         renderSessions();
       });
     }
@@ -357,7 +357,16 @@
           select.appendChild(opt);
         }
       });
-      loadSessions();
+      loadSessions().then(function() {
+        // 支持 ?session={id} 直达指定会话（管理后台"查看"入口）
+        var sid = new URLSearchParams(location.search).get('session');
+        if (sid) {
+          var id = parseInt(sid, 10);
+          if (id && sessions.some(function(s) { return s.id === id; })) {
+            selectSession(id);
+          }
+        }
+      });
     }
 
     initChat();

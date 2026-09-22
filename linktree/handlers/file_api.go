@@ -39,7 +39,11 @@ func ListPublicFiles(w http.ResponseWriter, r *http.Request) {
 }
 
 func UploadFile(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseMultipartForm(models.GetMaxFileSize()); err != nil {
+	maxSize := models.GetMaxFileSize()
+	// 总量闸门：MaxBytesReader 限制请求体总大小
+	r.Body = http.MaxBytesReader(w, r.Body, maxSize)
+	// ParseMultipartForm 参数是内存缓冲，不是大小上限；用小值，超出部分落临时盘
+	if err := r.ParseMultipartForm(8 << 20); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		writeJSON(w, map[string]interface{}{"ok": false, "message": "文件过大或请求格式错误"})
 		return
@@ -188,6 +192,16 @@ func DownloadFile(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		writeJSON(w, map[string]interface{}{"ok": false, "message": "文件不存在"})
 		return
+	}
+
+	// 私有文件仅管理员可下载（防 IDOR：匿名遍历自增 ID 拖库）
+	if !file.IsPublic {
+		session, _ := store.Get(r, "linktree_session")
+		if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
+			w.WriteHeader(http.StatusNotFound) // 404 而非 401，避免暴露文件存在性
+			writeJSON(w, map[string]interface{}{"ok": false, "message": "文件不存在"})
+			return
+		}
 	}
 
 	uploadDir := models.GetUploadDir()
