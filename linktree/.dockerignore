@@ -1,0 +1,8 @@
+.git
+data/
+*.log
+*.tar.gz
+linktree.exe
+web/node_modules/
+web/dist/
+new-api-*

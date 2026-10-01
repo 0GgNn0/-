@@ -22,6 +22,33 @@ func noCache(next http.Handler) http.Handler {
 	})
 }
 
+// spaHandler 服务 Vite 构建产物：真实文件直出，其余回退 index.html（前端路由）
+func spaHandler(distDir string) http.Handler {
+	fileServer := http.FileServer(http.Dir(distDir))
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		p := filepath.Clean(r.URL.Path)
+		full := filepath.Join(distDir, p)
+		if st, err := os.Stat(full); err == nil && !st.IsDir() {
+			if len(p) >= len("/assets/") && p[:8] == "/assets/" {
+				w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+			} else {
+				w.Header().Set("Cache-Control", "no-cache, must-revalidate")
+			}
+			fileServer.ServeHTTP(w, r)
+			return
+		}
+		// 未知 API 路径返回 404 JSON，避免前端 index 污染 API 语义
+		if len(r.URL.Path) >= 4 && r.URL.Path[:4] == "/api" {
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte(`{"ok":false,"message":"not found"}`))
+			return
+		}
+		w.Header().Set("Cache-Control", "no-cache, must-revalidate")
+		http.ServeFile(w, r, filepath.Join(distDir, "index.html"))
+	})
+}
+
 func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -80,15 +107,10 @@ func main() {
 	// Build routes
 	mux := http.NewServeMux()
 
-	// Public routes
-	mux.HandleFunc("GET /", handlers.IndexPage)
-	mux.HandleFunc("GET /ask", handlers.AskPage)
+	// Public routes (SPA frontend served by spaHandler at "GET /")
+	mux.HandleFunc("GET /api/public/profile", handlers.PublicProfile)
+	mux.HandleFunc("GET /api/public/links", handlers.PublicLinks)
 	mux.HandleFunc("POST /api/ask", handlers.AskAI)
-	mux.HandleFunc("GET /works", handlers.WorksPage)
-	mux.HandleFunc("GET /work/{id}", handlers.WorkDetailPage)
-	mux.HandleFunc("GET /about", handlers.AboutPage)
-	mux.HandleFunc("GET /experience", handlers.ExperiencePage)
-	mux.HandleFunc("GET /contact", handlers.ContactPage)
 	mux.HandleFunc("GET /admin/login", handlers.LoginPage)
 	mux.HandleFunc("POST /api/auth/login", handlers.Login)
 	mux.HandleFunc("POST /api/auth/logout", handlers.Logout)
@@ -145,6 +167,9 @@ func main() {
 	mux.Handle("PUT /api/chat/sessions/{id}", auth(http.HandlerFunc(handlers.UpdateChatSession)))
 	mux.Handle("GET /api/chat/sessions/{id}/messages", auth(http.HandlerFunc(handlers.GetChatMessages)))
 	mux.Handle("POST /api/chat/send", auth(http.HandlerFunc(handlers.SendChatMessage)))
+
+	// SPA fallback：非上述模式的 GET 请求交给 Vue 前端（web/dist）
+	mux.Handle("GET /", spaHandler("web/dist"))
 
 	// Start
 	addr := ":" + port
