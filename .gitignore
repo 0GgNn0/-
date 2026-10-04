@@ -1,0 +1,28 @@
+# === 归档与部署产物（体积大、可重建，勿入库） ===
+*.tar.gz
+*.tgz
+*.zip
+new-api-deploy/
+new-api-main/
+
+# === 本机工具运行时状态（含 token / pid，绝不能入库） ===
+.gstack/
+.agents/
+.dsh-tmp/
+skills-lock.json
+
+# === 本地凭据与数据库 ===
+.env
+*.env.local
+*.db
+*.db-shm
+*.db-wal
+
+# === 日志 ===
+*.log
+
+# === 编辑器 / 系统 ===
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
