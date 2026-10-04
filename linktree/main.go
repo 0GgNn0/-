@@ -50,6 +50,16 @@ func spaHandler(distDir string) http.Handler {
 }
 
 func main() {
+	// --rotate-admin-password：显式把 ADMIN_PASSWORD 重置为库中密码（用于凭据轮换）。
+	// 默认不执行：环境变量只在数据库首次初始化时生效，避免每次重启都改密码。
+	rotateAdminPassword := false
+	for _, a := range os.Args[1:] {
+		switch a {
+		case "--rotate-admin-password":
+			rotateAdminPassword = true
+		}
+	}
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
@@ -82,6 +92,14 @@ func main() {
 		fmt.Printf("  初始管理密码: %s\n", generatedPassword)
 		fmt.Println("  请首次登录后立即修改！")
 		fmt.Println("========================================")
+	}
+
+	if rotateAdminPassword {
+		msg, err := models.RotateAdminPasswordFromEnv(os.Getenv("ADMIN_PASSWORD"))
+		if err != nil {
+			log.Fatalf("管理密码轮换失败: %v", err)
+		}
+		log.Printf("[admin-password-rotate] %s", msg)
 	}
 
 	// Init templates

@@ -49,6 +49,21 @@ func InitAdminPassword(envPassword string) (string, error) {
 	return password, nil
 }
 
+// RotateAdminPasswordFromEnv 仅在显式请求时（--rotate-admin-password）把环境变量里的密码
+// 重新哈希写库，用于轮换已泄露的运维凭据。未设置环境变量时不做任何改动，避免误锁死后台。
+func RotateAdminPasswordFromEnv(envPassword string) (string, error) {
+	if envPassword == "" {
+		return "skipped: ADMIN_PASSWORD 未设置", nil
+	}
+	if VerifyPassword(envPassword) {
+		return "skipped: 与当前密码一致", nil
+	}
+	if err := ChangePassword(envPassword); err != nil {
+		return "", err
+	}
+	return "rotated: 已按 ADMIN_PASSWORD 重置后台密码", nil
+}
+
 func VerifyPassword(password string) bool {
 	hash, err := GetSetting("admin_password_hash")
 	if err != nil {

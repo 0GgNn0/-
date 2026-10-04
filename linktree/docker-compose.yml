@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   linktree:
     build: .
@@ -8,11 +6,11 @@ services:
       - "3001:8080"
     volumes:
       - ./data:/app/data
+    env_file:
+      - .env
     environment:
       - PORT=8080
       - DATA_DIR=/app/data
-      - ADMIN_PASSWORD=ChangeMe123!
-      - SESSION_SECRET=6SXVQm/nSjxaRMRecD/Umg7RjHr3Aq0on/yEOs6JAzhl5Z+XRCLyJb5Js9vsEb3c
       - MAX_FILE_SIZE=209715200
       - TZ=Asia/Shanghai
     restart: unless-stopped
