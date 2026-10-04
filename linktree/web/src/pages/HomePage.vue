@@ -6,6 +6,7 @@ import { profile } from '../profile'
 
 const works = ref([])
 const featured = computed(() => works.value.slice(0, 2))
+const resume = ref(null)
 
 const skills = ['Go', 'Python', 'TypeScript', 'React', 'Vue', 'LLM · AI', 'Docker', 'SQL']
 const avatarUrl = '/static/avatar.jpg'
@@ -32,6 +33,10 @@ onMounted(async () => {
   try {
     works.value = await api.works()
   } catch (_) { /* empty state */ }
+  try {
+    const r = await api.resume()
+    if (r && r.available) resume.value = r
+  } catch (_) { /* 无简历文件时静默降级 */ }
 })
 </script>
 
@@ -53,6 +58,16 @@ onMounted(async () => {
       <div class="hero-actions reveal" style="--d:.48s">
         <n-button type="primary" round tag="router-link" to="/ask" size="large">💬 问 AI 关于我</n-button>
         <router-link to="/works" class="btn-text arrow-link">查看作品 <span class="arr">→</span></router-link>
+        <a
+          v-if="resume"
+          class="btn-resume"
+          :href="resume.url"
+          :title="resume.name + (resume.formatted_size ? ' · ' + resume.formatted_size : '')"
+          download
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          下载简历<template v-if="resume.formatted_size"><span class="btn-resume-meta mono">PDF · {{ resume.formatted_size }}</span></template>
+        </a>
       </div>
     </section>
 
@@ -134,6 +149,24 @@ body[data-theme="dark"] .hero-bio { color: rgba(190, 190, 200, 0.95); }
 }
 body[data-theme="dark"] .btn-text { border-color: rgba(255, 255, 255, 0.16); }
 .btn-text:hover { color: #10b981; border-color: #10b981; }
+
+.btn-resume {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 18px;
+  border-radius: 999px;
+  font-size: 14px; font-weight: 600;
+  text-decoration: none;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-resume:hover {
+  background: rgba(16, 185, 129, 0.18);
+  border-color: rgba(16, 185, 129, 0.6);
+  transform: translateY(-1px);
+}
+.btn-resume-meta { font-size: 11px; font-weight: 500; opacity: 0.7; letter-spacing: 0.04em; }
 
 .featured { padding-bottom: 64px; }
 .featured-label {

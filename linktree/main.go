@@ -128,6 +128,7 @@ func main() {
 	// Public routes (SPA frontend served by spaHandler at "GET /")
 	mux.HandleFunc("GET /api/public/profile", handlers.PublicProfile)
 	mux.HandleFunc("GET /api/public/links", handlers.PublicLinks)
+	mux.HandleFunc("GET /api/public/resume", handlers.PublicResume)
 	mux.HandleFunc("POST /api/ask", handlers.AskAI)
 	mux.HandleFunc("GET /admin/login", handlers.LoginPage)
 	mux.HandleFunc("POST /api/auth/login", handlers.Login)

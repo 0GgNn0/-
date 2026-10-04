@@ -15,6 +15,7 @@ async function request(url, options = {}) {
 export const api = {
   profile: () => request('/api/public/profile'),
   links: () => request('/api/public/links'),
+  resume: () => request('/api/public/resume'),
   works: () => request('/api/works/public'),
   experiences: () => request('/api/experiences')
 }
