@@ -1,0 +1,5 @@
+﻿Geist and Geist Mono are licensed under the SIL Open Font License, Version 1.1.
+Copyright (c) 2023 Vercel, in collaboration with basement.studio.
+Full license text: https://openfontlicense.org/open-font-license-official-text/
+Source: https://github.com/vercel/geist-font
+Self-hosted copies of the woff2 subset files live in this directory (static/fonts/).

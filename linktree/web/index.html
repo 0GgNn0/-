@@ -3,12 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="全栈 / AI 开发者个人主页">
+  <title>{{TITLE}}</title>
+  <meta name="description" content="{{DESCRIPTION}}">
+  <meta name="author" content="啊芃">
+  <meta name="theme-color" content="#10b981">
+  <link rel="canonical" href="{{CANONICAL}}">
+
+  <!-- Open Graph（微信 / QQ / 脉脉 / 掘金 等抓取用；服务端按路由注入真实内容） -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="啊芃">
+  <meta property="og:title" content="{{TITLE}}">
+  <meta property="og:description" content="{{DESCRIPTION}}">
+  <meta property="og:url" content="{{CANONICAL}}">
+  <meta property="og:image" content="{{OG_IMAGE}}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{TITLE}}">
+  <meta name="twitter:description" content="{{DESCRIPTION}}">
+  <meta name="twitter:image" content="{{OG_IMAGE}}">
+
+  <!-- 字体自托管（Geist / SIL OFL 1.1），不再依赖 fonts.googleapis.com -->
+  <link rel="preload" href="/static/fonts/gyByhwUxId8gMEwcGFU.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/static/fonts/or3nQ6H-1_WfwkMZI_qYFrcdmg.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/static/fonts.css">
   <link rel="icon" type="image/jpeg" href="/static/avatar.jpg">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <title>啊芃</title>
 </head>
 <body>
   <div id="app"></div>

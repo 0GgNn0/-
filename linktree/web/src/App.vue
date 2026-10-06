@@ -32,6 +32,7 @@ onMounted(() => {
     <n-dialog-provider>
       <n-message-provider placement="top">
         <div class="app-wrap">
+          <a href="#main" class="skip-link">跳到主要内容</a>
           <header class="topbar">
             <router-link to="/" class="topbar-name mono">{{ profile.display_name }}</router-link>
             <nav class="topnav">
@@ -52,7 +53,7 @@ onMounted(() => {
             </n-button>
           </header>
 
-          <main class="app-main">
+          <main class="app-main" id="main" tabindex="-1">
             <router-view v-slot="{ Component }">
               <transition name="page" mode="out-in">
                 <component :is="Component" :key="route.path" />
@@ -78,6 +79,24 @@ onMounted(() => {
   flex-direction: column;
   position: relative;
   z-index: 1;
+}
+
+/* 键盘用户跳过导航直达内容 */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 8px;
+  z-index: 10;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: #10b981;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.skip-link:focus {
+  left: 16px;
 }
 
 .topbar {

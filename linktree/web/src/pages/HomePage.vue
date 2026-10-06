@@ -5,7 +5,7 @@ import { api } from '../api'
 import { profile } from '../profile'
 
 const works = ref([])
-const featured = computed(() => works.value.slice(0, 2))
+const featured = computed(() => works.value.slice(0, 3))
 const resume = ref(null)
 
 const skills = ['Go', 'Python', 'TypeScript', 'React', 'Vue', 'LLM · AI', 'Docker', 'SQL']
@@ -177,7 +177,7 @@ body[data-theme="dark"] .btn-text { border-color: rgba(255, 255, 255, 0.16); }
   display: flex; justify-content: space-between; align-items: center;
 }
 .featured-label a { color: #10b981; text-decoration: none; font-size: 13px; text-transform: none; letter-spacing: 0; display: inline-flex; align-items: center; gap: 4px; }
-.featured-grid { display: grid; grid-template-columns: 1.12fr 1fr; gap: 16px; align-items: start; }
+.featured-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: start; }
 .featured-card {
   display: block;
   border-radius: 16px;
@@ -218,12 +218,20 @@ body[data-theme="dark"] .featured-card-cover { background: rgba(255, 255, 255, 0
 }
 body[data-theme="dark"] .featured-card-desc { color: rgba(170, 170, 180, 0.95); }
 
+@media (max-width: 980px) {
+  .featured-grid { grid-template-columns: 1fr 1fr; }
+}
+
 @media (max-width: 768px) {
   .home { padding: 0 24px; }
-  .hero { padding: 24px 0 56px; }
+  /* 移动端首屏：压缩 hero 纵向留白，让作品卡尽快进入视野 */
+  .hero { padding: 12px 0 40px; }
+  .hero-avatar { width: 60px; height: 60px; border-radius: 18px; margin: 16px 0 18px; }
   .hero-name { font-size: clamp(40px, 12vw, 56px); }
+  .hero-bio { font-size: 15px; margin-top: 14px; }
+  .hero-skills { font-size: 12px; margin-top: 18px; }
+  .hero-actions { margin-top: 26px; gap: 14px; }
   .featured-grid { grid-template-columns: 1fr; }
-  .hero-skills { font-size: 12px; }
   .hero-skills .sep { margin: 0 7px; }
 }
 </style>

@@ -3,6 +3,8 @@ package models
 import (
 	"crypto/rand"
 	"math/big"
+	"os"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -77,7 +79,21 @@ func ChangePassword(newPassword string) error {
 	if err != nil {
 		return err
 	}
-	return SetSetting("admin_password_hash", string(hash))
+	if err := SetSetting("admin_password_hash", string(hash)); err != nil {
+		return err
+	}
+	// 审计：记录最后一次改密时间与来源，避免"密码被谁改过"无从查证
+	source := "admin_panel"
+	if len(os.Args) > 1 {
+		for _, a := range os.Args[1:] {
+			if a == "--rotate-admin-password" {
+				source = "env_rotation"
+			}
+		}
+	}
+	SetSetting("admin_password_changed_at", time.Now().Format("2006-01-02 15:04:05"))
+	SetSetting("admin_password_changed_by", source)
+	return nil
 }
 
 func generateRandomPassword(length int) string {

@@ -40,6 +40,13 @@ img { max-width: 100%; }
 
 ::selection { background: #10b981; color: #fff; }
 :focus-visible { outline: 2px solid #10b981; outline-offset: 2px; }
+/* 键盘用户必须能看清焦点：显式覆盖掉了浏览器默认轮廓的地方要补回来 */
+a:focus-visible, button:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid #10b981;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.skip-link:focus { outline: 2px solid #fff; outline-offset: 2px; }
 
 .mono {
   font-family: 'Geist Mono', ui-monospace, SFMono-Regular, monospace;

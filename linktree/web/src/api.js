@@ -17,6 +17,7 @@ export const api = {
   links: () => request('/api/public/links'),
   resume: () => request('/api/public/resume'),
   works: () => request('/api/works/public'),
+  categories: () => request('/api/categories'),
   experiences: () => request('/api/experiences')
 }
 

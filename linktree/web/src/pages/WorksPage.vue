@@ -3,14 +3,27 @@ import { ref, onMounted, computed } from 'vue'
 import { api } from '../api'
 
 const works = ref([])
+const categories = ref([])
 const activeFilter = ref('all')
 
-const filters = [
-  { key: 'all', label: '全部' },
-  { key: 'web', label: 'Web 应用' },
-  { key: 'ai', label: 'AI 应用' },
-  { key: 'tool', label: '工具类' }
-]
+// 筛选条以作品实际用到的分类为准（后台可增删分类，不再硬编码 web/ai/tool）
+const filters = computed(() => {
+  const used = new Map()
+  for (const w of works.value) {
+    if (w.category_slug && w.category_name) used.set(w.category_slug, w.category_name)
+  }
+  // 已建但暂无作品的分类也保留，便于后台刚建分类时前台可见
+  for (const c of categories.value) {
+    if (c.slug && c.name && !used.has(c.slug)) used.set(c.slug, c.name)
+  }
+  return [{ key: 'all', label: '全部', count: works.value.length }].concat(
+    [...used.entries()].map(([key, label]) => ({
+      key,
+      label,
+      count: works.value.filter((w) => w.category_slug === key).length
+    }))
+  )
+})
 
 const filtered = computed(() =>
   activeFilter.value === 'all'
@@ -34,6 +47,9 @@ onMounted(async () => {
   try {
     works.value = await api.works()
   } catch (_) { /* empty state */ }
+  try {
+    categories.value = await api.categories()
+  } catch (_) { /* 分类接口不可用时退回作品自带的分类名 */ }
 })
 </script>
 
@@ -56,6 +72,7 @@ onMounted(async () => {
         @click="activeFilter = f.key"
       >
         {{ f.label }}
+        <span v-if="f.count" class="filter-count mono">{{ f.count }}</span>
       </button>
     </div>
 
@@ -118,6 +135,12 @@ body[data-theme="dark"] .filter-chip { background: rgba(24, 24, 27, 0.6); color:
 .filter-chip:hover { border-color: #10b981; color: #10b981; transform: translateY(-1px); }
 .filter-chip:active { transform: translateY(0) scale(0.97); }
 .filter-chip.active { background: #10b981; color: #fff; border-color: #10b981; }
+.filter-count {
+  margin-left: 6px;
+  font-size: 11px;
+  opacity: 0.65;
+}
+.filter-chip.active .filter-count { opacity: 0.85; }
 
 .works-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
 .work-card {
